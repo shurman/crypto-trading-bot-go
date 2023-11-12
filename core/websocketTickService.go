@@ -1,5 +1,5 @@
 // websocketTickService
-package main
+package core
 
 import (
 	"fmt"
@@ -8,13 +8,13 @@ import (
 	"github.com/adshao/go-binance/v2/futures"
 )
 
-func initWsTickService(chanNewKline chan futures.WsKline) {
+func InitWsTickService() {
 	log.Println("initWsTickService() Start")
 
 	wsKlineHandler := func(event *futures.WsKlineEvent) {
 		log.Println(event.Kline)
 
-		sendIfKlineClosed(event.Kline, chanNewKline)
+		sendIfKlineClosed(event.Kline)
 	}
 	errHandler := func(err error) {
 		fmt.Println(err)
@@ -29,9 +29,9 @@ func initWsTickService(chanNewKline chan futures.WsKline) {
 	<-doneC
 }
 
-func sendIfKlineClosed(newTick futures.WsKline, chanNewKline chan futures.WsKline) {
+func sendIfKlineClosed(newTick futures.WsKline) {
 	log.Println(newTick.StartTime) //===========
 	log.Println(newTick.EndTime)
 
-	chanNewKline <- newTick
+	NewKline <- newTick
 }

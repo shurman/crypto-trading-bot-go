@@ -4,12 +4,11 @@ package strategy
 import (
 	"log"
 
-	"github.com/adshao/go-binance/v2/futures"
+	"crypto-trading-bot-go/core"
 )
 
 var (
 	strategySlice []strategyObj
-	kLineSlice    []futures.WsKline
 )
 
 type strategyObj struct {
@@ -17,13 +16,13 @@ type strategyObj struct {
 	notify  chan bool
 }
 
-func InitStrategyService(chanNewKline chan futures.WsKline) {
-	log.Println("initAnalyzeService() Start")
+func InitStrategyService() {
+	log.Println("InitStrategyService() Start")
 	initCustomStrategies()
 
 	for {
-		newKline := <-chanNewKline
-		kLineSlice = append(kLineSlice, newKline)
+		nextKline := <-core.NewKline
+		core.KLineSlice = append(core.KLineSlice, nextKline)
 
 		for _, _strategy := range strategySlice {
 			_strategy.notify <- true
