@@ -30,10 +30,11 @@ func InitWsTickService() {
 }
 
 func sendIfKlineClosed(newTick futures.WsKline) {
-	log.Println(newTick.StartTime) //===========
-	log.Println(newTick.EndTime)
+	if len(KLineSlice) > 0 && newTick.StartTime == KLineSlice[len(KLineSlice)-1].StartTime {
+		KLineSlice = append(KLineSlice[:len(KLineSlice)-1], newTick)
+	} else {
+		KLineSlice = append(KLineSlice, newTick)
+		NotifyNewKline <- true
+	}
 
-	KLineSlice = append(KLineSlice, newTick)
-
-	NotifyNewKline <- true
 }
