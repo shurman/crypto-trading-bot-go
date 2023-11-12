@@ -33,5 +33,7 @@ func sendIfKlineClosed(newTick futures.WsKline) {
 	log.Println(newTick.StartTime) //===========
 	log.Println(newTick.EndTime)
 
-	NewKline <- newTick
+	KLineSlice = append(KLineSlice, newTick)
+
+	NotifyNewKline <- true
 }

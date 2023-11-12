@@ -21,8 +21,7 @@ func InitStrategyService() {
 	initCustomStrategies()
 
 	for {
-		nextKline := <-core.NewKline
-		core.KLineSlice = append(core.KLineSlice, nextKline)
+		<-core.NotifyNewKline
 
 		for _, _strategy := range strategySlice {
 			_strategy.notify <- true

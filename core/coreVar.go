@@ -6,6 +6,6 @@ import (
 )
 
 var (
-	NewKline   = make(chan futures.WsKline)
-	KLineSlice []futures.WsKline
+	NotifyNewKline = make(chan bool)
+	KLineSlice     []futures.WsKline
 )
