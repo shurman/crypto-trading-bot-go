@@ -2,7 +2,7 @@
 package strategy
 
 import (
-	"log"
+	"log/slog"
 
 	"crypto-trading-bot-go/core"
 )
@@ -17,7 +17,7 @@ type strategyObj struct {
 }
 
 func InitStrategyService() {
-	log.Println("InitStrategyService() Start")
+	slog.Info("InitStrategyService() Start")
 	initCustomStrategies()
 
 	for {

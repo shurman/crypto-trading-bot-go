@@ -3,38 +3,61 @@ package core
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
+	"strconv"
 
 	"github.com/adshao/go-binance/v2/futures"
 )
 
+var (
+	lastTick    futures.WsKline
+	currentTick futures.WsKline
+)
+
 func InitWsTickService() {
-	log.Println("initWsTickService() Start")
+	slog.Info("InitWsTickService() Start")
 
 	wsKlineHandler := func(event *futures.WsKlineEvent) {
-		log.Println(event.Kline)
+		slog.Info(fmt.Sprintf("%+v", event.Kline))
 
 		sendIfKlineClosed(event.Kline)
 	}
 	errHandler := func(err error) {
-		fmt.Println(err)
+		slog.Error(err.Error())
 	}
-	log.Println(wsKlineHandler)
 
 	doneC, _, err := futures.WsKlineServe("ETHUSDT", "1m", wsKlineHandler, errHandler) //WsCombinedKlineServe for multiple
 	if err != nil {
-		fmt.Println(err)
+		slog.Error(err.Error())
 		return
 	}
 	<-doneC
 }
 
 func sendIfKlineClosed(newTick futures.WsKline) {
-	if len(KLineSlice) > 0 && newTick.StartTime == KLineSlice[len(KLineSlice)-1].StartTime {
-		KLineSlice = append(KLineSlice[:len(KLineSlice)-1], newTick)
-	} else {
-		KLineSlice = append(KLineSlice, newTick)
+	lastTick = currentTick
+	currentTick = newTick
+
+	if currentTick.StartTime != lastTick.StartTime {
+
+		newKline := convertToKline(lastTick)
+
+		appendKlineSlice(newKline)
 		NotifyNewKline <- true
 	}
+}
 
+func convertToKline(tick futures.WsKline) Kline {
+	return Kline{
+		Open:  parseFloat(tick.Open),
+		High:  parseFloat(tick.High),
+		Low:   parseFloat(tick.Low),
+		Close: parseFloat(tick.Close),
+	}
+}
+
+func parseFloat(str string) float64 {
+	result, _ := strconv.ParseFloat(str, 10)
+
+	return result
 }
