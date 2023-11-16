@@ -3,12 +3,15 @@ package strategy
 
 import (
 	"crypto-trading-bot-go/core"
+	"fmt"
+	"log/slog"
 )
 
 var (
 	state     = 0
 	borderLow = 0.0
 	localHigh = 0.0
+	localLow  = 9999999.99
 )
 
 func doubleTopBottom(notify chan bool) {
@@ -16,8 +19,7 @@ func doubleTopBottom(notify chan bool) {
 	for {
 		<-notify
 
-		lenKl := core.GetKlineSliceLen()
-		if lenKl < 3 {
+		if core.GetKlineSliceLen() < 3 {
 			continue
 		}
 
@@ -32,8 +34,82 @@ func doubleTopBottom(notify chan bool) {
 				localHigh = k1.High
 				borderLow = k3.Low
 			}
-		} else if state == 1 {
 
+		} else if state == 1 {
+			if k1.High > localHigh {
+				localHigh = k1.High
+				localLow = 9999999.99
+
+			} else if k1.Low < localLow {
+				localLow = k1.Low
+
+			} else if k1.Low > (localHigh-localLow)*0.15 {
+				state = 2
+			}
+
+		} else if state == 2 {
+			if k1.Low < localLow {
+				state = 3
+
+			} else if k1.Low < borderLow-(localHigh-localLow)*0.4 {
+				reset()
+
+			} else if k1.High > localHigh+(localHigh-localLow)*0.4 {
+				reset()
+			}
+
+		} else if state == 3 {
+			if k1.High > k2.High {
+				slog.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
+					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
+					" L:" + fmt.Sprintf("%f", k1.High))
+				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
+				state = 4
+			}
+
+		} else if state == 4 {
+			if k1.High > k2.High { // means filled
+				//state = 5
+				reset()
+			} else {
+				//cancel order
+				slog.Info("Cancel previous order")
+				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
+				slog.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
+					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
+					" L:" + fmt.Sprintf("%f", k1.High))
+			}
+
+		} else if state == 5 { //phase 2
+			if k1.High < k2.High {
+				state = 6
+			}
+
+		} else if state == 6 {
+			if k1.High > k2.High {
+				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
+				slog.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
+					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
+					" L:" + fmt.Sprintf("%f", k1.High))
+				state = 7
+			}
+		} else if state == 7 {
+			if k1.High > k2.High { // means filled
+				reset()
+			} else {
+				//cancel order
+				slog.Info("Cancel previous order")
+				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
+				slog.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
+					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
+					" L:" + fmt.Sprintf("%f", k1.High))
+			}
 		}
 	}
+}
+
+func reset() {
+	state = 0
+	localHigh = 0
+	localLow = 9999999.99
 }

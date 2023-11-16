@@ -2,7 +2,7 @@
 package core
 
 import (
-	"fmt"
+	//"fmt"
 	"log/slog"
 	"strconv"
 
@@ -18,7 +18,7 @@ func InitWsTickService() {
 	slog.Info("InitWsTickService() Start")
 
 	wsKlineHandler := func(event *futures.WsKlineEvent) {
-		slog.Info(fmt.Sprintf("%+v", event.Kline))
+		//slog.Info(fmt.Sprintf("%+v", event.Kline))
 
 		sendIfKlineClosed(event.Kline)
 	}
