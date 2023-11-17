@@ -4,7 +4,11 @@ package core
 var (
 	NotifyNewKline = make(chan bool)
 	klineSlice     []Kline
-	klineLen       int = 0
+	klineLen       int    = 0
+	sSymbol        string = "ETHUSDT"
+	sInterval      string = "15m"
+	aKey           string = "ztS9Al39qduR2fQXWy0UagAipsJ7mQwm32aVO6aj3vtJP96sTxL6qTcZwuhhPchS"
+	aSecret        string = "PIxmCvoI4VxEnsAvGbppEn1InQMZDE0DDCdFqTC3UP54KLrr5eJNopnpLGxJQOiQ"
 )
 
 type Kline struct {

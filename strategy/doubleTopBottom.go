@@ -27,6 +27,8 @@ func doubleTopBottom(notify chan bool) {
 		k2 := core.GetLastKline(2)
 		k3 := core.GetLastKline(3)
 
+		slog.Info("[doubleTopBottom] state=" + fmt.Sprintf("%v", state))
+
 		if state == 0 {
 			if k1.High > k2.High && k2.High > k3.High && k1.High/k3.High > 1.01 {
 

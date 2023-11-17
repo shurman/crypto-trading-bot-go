@@ -2,7 +2,7 @@
 package core
 
 import (
-	//"fmt"
+	"fmt"
 	"log/slog"
 	"strconv"
 
@@ -26,7 +26,7 @@ func InitWsTickService() {
 		slog.Error(err.Error())
 	}
 
-	doneC, _, err := futures.WsKlineServe("ETHUSDT", "1m", wsKlineHandler, errHandler) //WsCombinedKlineServe for multiple
+	doneC, _, err := futures.WsKlineServe(sSymbol, sInterval, wsKlineHandler, errHandler) //WsCombinedKlineServe for multiple
 	if err != nil {
 		slog.Error(err.Error())
 		return
@@ -39,10 +39,10 @@ func sendIfKlineClosed(newTick futures.WsKline) {
 	currentTick = newTick
 
 	if currentTick.StartTime != lastTick.StartTime {
-
 		newKline := convertToKline(lastTick)
 
 		appendKlineSlice(newKline)
+		slog.Info(fmt.Sprintf("%+v", newKline))
 		NotifyNewKline <- true
 	}
 }
