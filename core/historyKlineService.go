@@ -19,10 +19,14 @@ func FutureClientInit() {
 }
 
 func GetHistoryKline() {
+	slog.Info("GetHistoryKline Start")
+
 	historyKlines, _ := futuresClient.NewKlinesService().Symbol(sSymbol).Limit(9).Interval(sInterval).Do(context.Background())
 
-	for _, hKline := range historyKlines {
-		slog.Info(fmt.Sprintf("%+v", hKline))
-	}
+	for _, fKline := range historyKlines[:len(historyKlines)-1] { //remove last one because of not closed
+		slog.Info(fmt.Sprintf("%+v", fKline))
 
+		hKline := kConvertKline(fKline)
+		recordNewKline(&hKline)
+	}
 }

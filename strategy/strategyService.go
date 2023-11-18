@@ -17,16 +17,10 @@ type strategyObj struct {
 }
 
 func InitStrategyService() {
-	slog.Info("InitStrategyService() Start")
+	slog.Info("InitStrategyService Start")
 	initCustomStrategies()
 
-	for {
-		<-core.NotifyNewKline
-
-		for _, _strategy := range strategySlice {
-			_strategy.notify <- true
-		}
-	}
+	go waitPriceFeeding()
 }
 
 func initCustomStrategies() {
@@ -45,4 +39,14 @@ func constructStrategy(_execute func(chan bool), _notify chan bool) strategyObj 
 	go _execute(_notify)
 
 	return newStrategy
+}
+
+func waitPriceFeeding() {
+	for {
+		<-core.NotifyNewKline
+
+		for _, _strategy := range strategySlice {
+			_strategy.notify <- true
+		}
+	}
 }

@@ -2,7 +2,7 @@
 package core
 
 import (
-	"fmt"
+	//"fmt"
 	"log/slog"
 	"strconv"
 
@@ -10,18 +10,15 @@ import (
 )
 
 var (
-	lastTick    futures.WsKline
-	currentTick futures.WsKline
+	NotifyNewKline = make(chan bool)
+	lastTick       *futures.WsKline
+	currentTick    *futures.WsKline
 )
 
 func InitWsTickService() {
-	slog.Info("InitWsTickService() Start")
+	slog.Info("InitWsTickService Start")
 
-	wsKlineHandler := func(event *futures.WsKlineEvent) {
-		//slog.Info(fmt.Sprintf("%+v", event.Kline))
-
-		sendIfKlineClosed(event.Kline)
-	}
+	wsKlineHandler := newKlineHandler
 	errHandler := func(err error) {
 		slog.Error(err.Error())
 	}
@@ -34,25 +31,19 @@ func InitWsTickService() {
 	<-doneC
 }
 
-func sendIfKlineClosed(newTick futures.WsKline) {
+func newKlineHandler(event *futures.WsKlineEvent) {
+	//slog.Info(fmt.Sprintf("%+v", event.Kline))
+
 	lastTick = currentTick
-	currentTick = newTick
+	currentTick = &event.Kline
 
-	if currentTick.StartTime != lastTick.StartTime {
-		newKline := convertToKline(lastTick)
-
-		appendKlineSlice(newKline)
-		slog.Info(fmt.Sprintf("%+v", newKline))
-		NotifyNewKline <- true
+	if lastTick.StartTime == 0 {
+		return
 	}
-}
+	if currentTick.StartTime != lastTick.StartTime {
+		newKline := fConvertToKline(lastTick)
 
-func convertToKline(tick futures.WsKline) Kline {
-	return Kline{
-		Open:  parseFloat(tick.Open),
-		High:  parseFloat(tick.High),
-		Low:   parseFloat(tick.Low),
-		Close: parseFloat(tick.Close),
+		recordNewKline(&newKline)
 	}
 }
 

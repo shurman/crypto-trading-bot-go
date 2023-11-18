@@ -10,11 +10,13 @@ import (
 //test slack notify
 
 func main() {
+	strategy.InitStrategyService()
+
+	core.LoadConfigs()
 	core.FutureClientInit()
 	core.GetHistoryKline()
-	//send to channel
+
 	go core.InitWsTickService()
-	go strategy.InitStrategyService()
 
 	select {}
 }
