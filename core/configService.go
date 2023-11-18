@@ -30,7 +30,7 @@ type BinanceConfigs struct {
 }
 
 func LoadConfigs() {
-	Logger.Info("LoadConfigs Start")
+	Logger.Info("[LoadConfigs] Start")
 
 	reader := viper.New()
 

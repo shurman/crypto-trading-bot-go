@@ -15,7 +15,7 @@ var (
 )
 
 func InitWsTickService() {
-	Logger.Info("InitWsTickService Start")
+	Logger.Info("[InitWsTickService] Start")
 
 	wsKlineHandler := newKlineHandler
 	errHandler := func(err error) {

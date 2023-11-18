@@ -15,7 +15,7 @@ type strategyObj struct {
 }
 
 func InitStrategyService() {
-	core.Logger.Info("InitStrategyService Start")
+	core.Logger.Info("[InitStrategyService] Start")
 	initCustomStrategies()
 
 	go waitPriceFeeding()
