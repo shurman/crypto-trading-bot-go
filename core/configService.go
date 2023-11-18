@@ -10,7 +10,7 @@ import (
 var (
 	tSymbol       string
 	tInterval     string
-	tHistorylimit int
+	tHistoryLimit int
 	bKey          string
 	bSecret       string
 )
@@ -21,8 +21,9 @@ type Configurations struct {
 }
 
 type TradingConfigs struct {
-	Symbol   string `mapstructure:"symbol"`
-	Interval string `mapstructure:"interval"`
+	Symbol       string `mapstructure:"symbol"`
+	Interval     string `mapstructure:"interval"`
+	HistoryLimit int    `mapstructure:"historylimit"`
 }
 
 type BinanceConfigs struct {
@@ -54,6 +55,7 @@ func LoadConfigs() {
 
 	tSymbol = config.Trading.Symbol
 	tInterval = config.Trading.Interval
+	tHistoryLimit = config.Trading.HistoryLimit
 	bKey = config.Binance.Apikey
 	bSecret = config.Binance.Apisecret
 }
