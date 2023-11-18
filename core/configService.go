@@ -8,10 +8,11 @@ import (
 )
 
 var (
-	sSymbol   string
-	sInterval string
-	aKey      string
-	aSecret   string
+	tSymbol       string
+	tInterval     string
+	tHistorylimit int
+	bKey          string
+	bSecret       string
 )
 
 type Configurations struct {
@@ -51,8 +52,8 @@ func LoadConfigs() {
 		panic("Unable to decode into struct, " + err.Error())
 	}
 
-	sSymbol = config.Trading.Symbol
-	sInterval = config.Trading.Interval
-	aKey = config.Binance.Apikey
-	aSecret = config.Binance.Apisecret
+	tSymbol = config.Trading.Symbol
+	tInterval = config.Trading.Interval
+	bKey = config.Binance.Apikey
+	bSecret = config.Binance.Apisecret
 }

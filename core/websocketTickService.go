@@ -23,7 +23,7 @@ func InitWsTickService() {
 		slog.Error(err.Error())
 	}
 
-	doneC, _, err := futures.WsKlineServe(sSymbol, sInterval, wsKlineHandler, errHandler) //WsCombinedKlineServe for multiple
+	doneC, _, err := futures.WsKlineServe(tSymbol, tInterval, wsKlineHandler, errHandler) //WsCombinedKlineServe for multiple
 	if err != nil {
 		slog.Error(err.Error())
 		return

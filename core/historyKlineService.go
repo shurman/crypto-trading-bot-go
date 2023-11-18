@@ -15,13 +15,13 @@ var (
 )
 
 func FutureClientInit() {
-	futuresClient = binance.NewFuturesClient(aKey, aSecret)
+	futuresClient = binance.NewFuturesClient(bKey, bSecret)
 }
 
 func GetHistoryKline() {
 	slog.Info("GetHistoryKline Start")
 
-	historyKlines, _ := futuresClient.NewKlinesService().Symbol(sSymbol).Limit(9).Interval(sInterval).Do(context.Background())
+	historyKlines, _ := futuresClient.NewKlinesService().Symbol(tSymbol).Limit(tHistorylimit).Interval(tInterval).Do(context.Background())
 
 	for _, fKline := range historyKlines[:len(historyKlines)-1] { //remove last one because of not closed
 		//slog.Info(fmt.Sprintf("%+v", fKline))

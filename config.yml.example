@@ -1,6 +1,7 @@
 trading:
   symbol: ETHUSDT
   interval: 15m
+  historylimit: 10
 
 binance:
   apikey: xxx
