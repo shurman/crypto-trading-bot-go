@@ -2,8 +2,6 @@
 package core
 
 import (
-	"log/slog"
-
 	"github.com/spf13/viper"
 )
 
@@ -32,7 +30,7 @@ type BinanceConfigs struct {
 }
 
 func LoadConfigs() {
-	slog.Info("LoadConfigs Start")
+	Logger.Info("LoadConfigs Start")
 
 	reader := viper.New()
 

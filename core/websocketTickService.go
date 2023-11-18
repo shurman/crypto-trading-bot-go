@@ -2,8 +2,7 @@
 package core
 
 import (
-	//"fmt"
-	"log/slog"
+	"fmt"
 	"strconv"
 
 	"github.com/adshao/go-binance/v2/futures"
@@ -16,23 +15,23 @@ var (
 )
 
 func InitWsTickService() {
-	slog.Info("InitWsTickService Start")
+	Logger.Info("InitWsTickService Start")
 
 	wsKlineHandler := newKlineHandler
 	errHandler := func(err error) {
-		slog.Error(err.Error())
+		Logger.Error(err.Error())
 	}
 
 	doneC, _, err := futures.WsKlineServe(tSymbol, tInterval, wsKlineHandler, errHandler) //WsCombinedKlineServe for multiple
 	if err != nil {
-		slog.Error(err.Error())
+		Logger.Error(err.Error())
 		return
 	}
 	<-doneC
 }
 
 func newKlineHandler(event *futures.WsKlineEvent) {
-	//slog.Info(fmt.Sprintf("%+v", event.Kline))
+	Logger.Debug(fmt.Sprintf("%+v", event.Kline))
 
 	lastTick = currentTick
 	currentTick = &event.Kline

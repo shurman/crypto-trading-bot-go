@@ -2,8 +2,6 @@
 package strategy
 
 import (
-	"log/slog"
-
 	"crypto-trading-bot-go/core"
 )
 
@@ -17,7 +15,7 @@ type strategyObj struct {
 }
 
 func InitStrategyService() {
-	slog.Info("InitStrategyService Start")
+	core.Logger.Info("InitStrategyService Start")
 	initCustomStrategies()
 
 	go waitPriceFeeding()

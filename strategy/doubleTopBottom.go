@@ -4,7 +4,6 @@ package strategy
 import (
 	"crypto-trading-bot-go/core"
 	"fmt"
-	"log/slog"
 )
 
 var (
@@ -27,7 +26,7 @@ func doubleTopBottom(notify chan bool) {
 		k2 := core.GetLastKline(2)
 		k3 := core.GetLastKline(3)
 
-		slog.Info("[doubleTopBottom] state=" + fmt.Sprintf("%v", state))
+		core.Logger.Info("[doubleTopBottom] state=" + fmt.Sprintf("%v", state))
 
 		if state == 0 {
 			if k1.High > k2.High && k2.High > k3.High && k1.High/k3.High > 1.01 {
@@ -62,7 +61,7 @@ func doubleTopBottom(notify chan bool) {
 
 		} else if state == 3 {
 			if k1.High > k2.High {
-				slog.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
+				core.Logger.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
 					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
 					" L:" + fmt.Sprintf("%f", k1.High))
 				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
@@ -75,9 +74,9 @@ func doubleTopBottom(notify chan bool) {
 				reset()
 			} else {
 				//cancel order
-				slog.Info("Cancel previous order")
+				core.Logger.Info("Cancel previous order")
 				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
-				slog.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
+				core.Logger.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
 					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
 					" L:" + fmt.Sprintf("%f", k1.High))
 			}
@@ -90,7 +89,7 @@ func doubleTopBottom(notify chan bool) {
 		} else if state == 6 {
 			if k1.High > k2.High {
 				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
-				slog.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
+				core.Logger.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
 					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
 					" L:" + fmt.Sprintf("%f", k1.High))
 				state = 7
@@ -100,9 +99,9 @@ func doubleTopBottom(notify chan bool) {
 				reset()
 			} else {
 				//cancel order
-				slog.Info("Cancel previous order")
+				core.Logger.Info("Cancel previous order")
 				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
-				slog.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
+				core.Logger.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
 					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
 					" L:" + fmt.Sprintf("%f", k1.High))
 			}

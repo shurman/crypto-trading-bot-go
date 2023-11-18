@@ -10,8 +10,9 @@ import (
 //test slack notify
 
 func main() {
-	strategy.InitStrategyService()
+	core.InitSlog()
 
+	strategy.InitStrategyService()
 	core.LoadConfigs()
 	core.FutureClientInit()
 	core.GetHistoryKline()
