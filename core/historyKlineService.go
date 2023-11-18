@@ -3,7 +3,7 @@ package core
 
 import (
 	"context"
-	"fmt"
+	//"fmt"
 	"log/slog"
 
 	"github.com/adshao/go-binance/v2"
@@ -24,7 +24,7 @@ func GetHistoryKline() {
 	historyKlines, _ := futuresClient.NewKlinesService().Symbol(sSymbol).Limit(9).Interval(sInterval).Do(context.Background())
 
 	for _, fKline := range historyKlines[:len(historyKlines)-1] { //remove last one because of not closed
-		slog.Info(fmt.Sprintf("%+v", fKline))
+		//slog.Info(fmt.Sprintf("%+v", fKline))
 
 		hKline := kConvertKline(fKline)
 		recordNewKline(&hKline)

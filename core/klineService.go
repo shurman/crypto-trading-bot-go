@@ -2,6 +2,9 @@
 package core
 
 import (
+	"fmt"
+	"log/slog"
+
 	"github.com/adshao/go-binance/v2/futures"
 )
 
@@ -25,7 +28,7 @@ func recordNewKline(newKline *Kline) {
 	klineSlice = append(klineSlice, newKline)
 	klineLen = len(klineSlice)
 
-	//slog.Info(fmt.Sprintf("%+v", newKline))
+	slog.Info(fmt.Sprintf("%+v", newKline))
 	NotifyNewKline <- true
 }
 

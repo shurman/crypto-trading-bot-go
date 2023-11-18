@@ -37,7 +37,7 @@ func newKlineHandler(event *futures.WsKlineEvent) {
 	lastTick = currentTick
 	currentTick = &event.Kline
 
-	if lastTick.StartTime == 0 {
+	if lastTick == nil {
 		return
 	}
 	if currentTick.StartTime != lastTick.StartTime {
