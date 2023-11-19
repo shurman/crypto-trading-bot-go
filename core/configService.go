@@ -2,8 +2,6 @@
 package core
 
 import (
-	"fmt"
-
 	"github.com/spf13/viper"
 )
 
@@ -12,9 +10,14 @@ var (
 )
 
 type Configurations struct {
+	System  SystemConfigs  `mapstructure:"system"`
 	Trading TradingConfigs `mapstructure:"trading"`
 	Binance BinanceConfigs `mapstructure:"binance"`
 	Slack   SlackConfigs   `mapstructure:"slack"`
+}
+
+type SystemConfigs struct {
+	Loglevel string `mapstructure:"loglevel"`
 }
 
 type TradingConfigs struct {
@@ -34,8 +37,6 @@ type SlackConfigs struct {
 }
 
 func LoadConfigs() {
-	Logger.Info("[LoadConfigs] Start")
-
 	reader := viper.New()
 
 	reader.SetConfigName("config")
@@ -52,6 +53,4 @@ func LoadConfigs() {
 	if err != nil {
 		panic("Unable to decode into struct, " + err.Error())
 	}
-
-	Logger.Debug(fmt.Sprintf("%+v", Config))
 }

@@ -17,8 +17,8 @@ func FutureClientInit() {
 	futuresClient = binance.NewFuturesClient(Config.Binance.Apikey, Config.Binance.Apisecret)
 }
 
-func GetHistoryKline() {
-	Logger.Info("[GetHistoryKline] Start")
+func LoadHistoryKline() {
+	Logger.Info("[LoadHistoryKline] Start")
 
 	historyKlines, _ := futuresClient.NewKlinesService().Symbol(Config.Trading.Symbol).Limit(Config.Trading.HistoryLimit + 1).Interval(Config.Trading.Interval).Do(context.Background())
 

@@ -10,8 +10,15 @@ var (
 )
 
 func InitSlog() {
+	level := new(slog.Level)
+	err := level.UnmarshalText([]byte(Config.System.Loglevel))
+
+	if err != nil {
+		panic(err)
+	}
+
 	options := &slog.HandlerOptions{
-		Level:     slog.LevelInfo,
+		Level:     *level,
 		AddSource: true,
 	}
 

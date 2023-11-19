@@ -1,3 +1,6 @@
+system:
+  loglevel: INFO
+
 trading:
   symbol: ETHUSDT
   interval: 15m

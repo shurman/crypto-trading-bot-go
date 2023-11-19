@@ -7,13 +7,13 @@ import (
 )
 
 func main() {
+	core.LoadConfigs()
 	core.InitSlog()
 
 	strategy.InitStrategyService()
-	core.LoadConfigs()
-	core.FutureClientInit()
-	core.GetHistoryKline()
 
+	core.FutureClientInit()
+	core.LoadHistoryKline()
 	go core.InitWsTickService()
 
 	select {}
