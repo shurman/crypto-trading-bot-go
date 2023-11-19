@@ -6,12 +6,11 @@ import (
 	"net/http"
 )
 
-func sendMessage(message string) {
-	url := "https://"
+func sendSlack(message string) {
+	url := Config.Slack.Webhook
+	channel := Config.Slack.Channel
 
-	jsonData := []byte(`payload={'channel': '#my-channel-here',
-	 'username': 'Trading Signal Bot',
-	 'text': '` + message + `'}`)
+	jsonData := []byte("payload={'channel': '" + channel + "', 'username': 'Trading Signal Bot', 'text': '" + message + "'}")
 
 	request, error := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")

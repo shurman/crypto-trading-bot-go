@@ -6,16 +6,13 @@ import (
 )
 
 var (
-	tSymbol       string
-	tInterval     string
-	tHistoryLimit int
-	bKey          string
-	bSecret       string
+	Config Configurations
 )
 
 type Configurations struct {
 	Trading TradingConfigs `mapstructure:"trading"`
 	Binance BinanceConfigs `mapstructure:"binance"`
+	Slack   SlackConfigs   `mapstructure:"slack"`
 }
 
 type TradingConfigs struct {
@@ -27,6 +24,11 @@ type TradingConfigs struct {
 type BinanceConfigs struct {
 	Apikey    string `mapstructure:"apikey"`
 	Apisecret string `mapstructure:"apisecret"`
+}
+
+type SlackConfigs struct {
+	Webhook string `mapstructure:"webhook"`
+	Channel string `mapstructure:"channel"`
 }
 
 func LoadConfigs() {
@@ -50,10 +52,4 @@ func LoadConfigs() {
 	if err != nil {
 		panic("Unable to decode into struct, " + err.Error())
 	}
-
-	tSymbol = config.Trading.Symbol
-	tInterval = config.Trading.Interval
-	tHistoryLimit = config.Trading.HistoryLimit
-	bKey = config.Binance.Apikey
-	bSecret = config.Binance.Apisecret
 }

@@ -13,10 +13,11 @@ var (
 )
 
 type Kline struct {
-	Open  float64
-	High  float64
-	Low   float64
-	Close float64
+	StartTime int64
+	Open      float64
+	High      float64
+	Low       float64
+	Close     float64
 }
 
 func GetKlineSliceLen() int {
@@ -40,18 +41,20 @@ func GetLastKline(nth int) *Kline {
 
 func fConvertToKline(tick *futures.WsKline) Kline {
 	return Kline{
-		Open:  parseFloat(tick.Open),
-		High:  parseFloat(tick.High),
-		Low:   parseFloat(tick.Low),
-		Close: parseFloat(tick.Close),
+		StartTime: tick.StartTime,
+		Open:      parseFloat(tick.Open),
+		High:      parseFloat(tick.High),
+		Low:       parseFloat(tick.Low),
+		Close:     parseFloat(tick.Close),
 	}
 }
 
 func kConvertKline(tick *futures.Kline) Kline {
 	return Kline{
-		Open:  parseFloat(tick.Open),
-		High:  parseFloat(tick.High),
-		Low:   parseFloat(tick.Low),
-		Close: parseFloat(tick.Close),
+		StartTime: tick.OpenTime,
+		Open:      parseFloat(tick.Open),
+		High:      parseFloat(tick.High),
+		Low:       parseFloat(tick.Low),
+		Close:     parseFloat(tick.Close),
 	}
 }

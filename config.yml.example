@@ -6,3 +6,7 @@ trading:
 binance:
   apikey: xxx
   apisecret: xxx
+
+slack:
+  webhook: https://hooks.slack.com/services/xxxx
+  channel: "#xxxx"

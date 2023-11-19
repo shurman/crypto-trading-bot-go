@@ -22,7 +22,12 @@ func InitWsTickService() {
 		Logger.Error(err.Error())
 	}
 
-	doneC, _, err := futures.WsKlineServe(tSymbol, tInterval, wsKlineHandler, errHandler) //WsCombinedKlineServe for multiple
+	doneC, _, err := futures.WsKlineServe( //WsCombinedKlineServe for multiple
+		Config.Trading.Symbol,
+		Config.Trading.Interval,
+		wsKlineHandler,
+		errHandler,
+	)
 	if err != nil {
 		Logger.Error(err.Error())
 		return
