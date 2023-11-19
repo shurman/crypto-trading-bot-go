@@ -2,6 +2,8 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/spf13/viper"
 )
 
@@ -46,10 +48,10 @@ func LoadConfigs() {
 		panic("Error reading config file, " + err.Error())
 	}
 
-	var config Configurations
-
-	err := reader.Unmarshal(&config)
+	err := reader.Unmarshal(&Config)
 	if err != nil {
 		panic("Unable to decode into struct, " + err.Error())
 	}
+
+	Logger.Debug(fmt.Sprintf("%+v", Config))
 }
