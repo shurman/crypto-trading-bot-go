@@ -3,23 +3,24 @@ package core
 
 import (
 	"bytes"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 )
 
-func sendSlack(message string) {
-	url := Config.Slack.Webhook
-	channel := Config.Slack.Channel
+func SendSlack(message string) {
+	jsonData := []byte("{'channel': '" + Config.Slack.Channel + "', 'username': 'Signal Bot', 'text': '" + message + "'}")
 
-	jsonData := []byte("payload={'channel': '" + channel + "', 'username': 'Trading Signal Bot', 'text': '" + message + "'}")
-
-	request, error := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
-
-	client := &http.Client{}
-	response, error := client.Do(request)
+	response, error := http.Post(Config.Slack.Webhook, "application/json", bytes.NewBuffer(jsonData))
 	if error != nil {
 		panic(error)
 	}
-	defer response.Body.Close()
 
+	defer response.Body.Close()
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	Logger.Debug(fmt.Sprintf("result: %s", string(body)))
 }

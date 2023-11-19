@@ -6,9 +6,6 @@ import (
 	"crypto-trading-bot-go/strategy"
 )
 
-//todo
-//test slack notify
-
 func main() {
 	core.InitSlog()
 
