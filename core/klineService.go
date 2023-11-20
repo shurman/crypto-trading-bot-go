@@ -28,7 +28,7 @@ func recordNewKline(newKline *Kline) {
 	klineSlice = append(klineSlice, newKline)
 	klineLen = len(klineSlice)
 
-	Logger.Info(fmt.Sprintf("%+v", newKline))
+	Logger.Debug("<- " + fmt.Sprintf("%+v", newKline))
 	NotifyNewKline <- true
 }
 

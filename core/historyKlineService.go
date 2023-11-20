@@ -18,14 +18,14 @@ func FutureClientInit() {
 }
 
 func LoadHistoryKline() {
-	Logger.Info("[LoadHistoryKline] Start")
-
 	historyKlines, _ := futuresClient.NewKlinesService().Symbol(Config.Trading.Symbol).Limit(Config.Trading.HistoryLimit + 1).Interval(Config.Trading.Interval).Do(context.Background())
 
 	for _, fKline := range historyKlines[:len(historyKlines)-1] { //remove last one because of not closed
-		Logger.Debug(fmt.Sprintf("%+v", fKline))
-
 		hKline := kConvertKline(fKline)
+
+		Logger.Debug("Loaded " + fmt.Sprintf("%+v", hKline))
 		recordNewKline(&hKline)
 	}
+
+	Logger.Info("[LoadHistoryKline] History klines loaded.")
 }

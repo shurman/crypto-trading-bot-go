@@ -26,7 +26,7 @@ func doubleTopBottom(notify chan bool) {
 		k2 := core.GetLastKline(2)
 		k3 := core.GetLastKline(3)
 
-		core.Logger.Info("[doubleTopBottom] state=" + fmt.Sprintf("%v", state))
+		core.Logger.Info(fmt.Sprintf("[doubleTopBottom] ==== state=%d  %+v", state, k1))
 
 		if state == 0 {
 			if k1.High > k2.High && k2.High > k3.High && k1.High/k3.High > 1.01 {
@@ -71,12 +71,12 @@ func doubleTopBottom(notify chan bool) {
 		} else if state == 4 {
 			if k1.High > k2.High { // means filled
 				//state = 5
+				core.Logger.Info("[Filled]")
 				reset()
 			} else {
 				//cancel order
-				core.Logger.Info("Cancel previous order")
 				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
-				core.Logger.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
+				core.Logger.Info("[Re-Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
 					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
 					" L:" + fmt.Sprintf("%f", k1.High))
 			}
@@ -106,6 +106,8 @@ func doubleTopBottom(notify chan bool) {
 					" L:" + fmt.Sprintf("%f", k1.High))
 			}
 		}
+
+		core.Logger.Info(fmt.Sprintf("====================== state=%d", state))
 	}
 }
 

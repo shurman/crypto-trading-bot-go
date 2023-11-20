@@ -15,8 +15,6 @@ var (
 )
 
 func InitWsTickService() {
-	Logger.Info("[InitWsTickService] Start")
-
 	wsKlineHandler := newKlineHandler
 	errHandler := func(err error) {
 		Logger.Error(err.Error())
@@ -32,11 +30,13 @@ func InitWsTickService() {
 		Logger.Error(err.Error())
 		return
 	}
+
+	Logger.Info("[InitWsTickService] Initialized")
 	<-doneC
 }
 
 func newKlineHandler(event *futures.WsKlineEvent) {
-	Logger.Debug(fmt.Sprintf("%+v", event.Kline))
+	Logger.Debug("ws event: " + fmt.Sprintf("%+v", event.Kline))
 
 	lastTick = currentTick
 	currentTick = &event.Kline
@@ -47,6 +47,7 @@ func newKlineHandler(event *futures.WsKlineEvent) {
 	if currentTick.StartTime != lastTick.StartTime {
 		newKline := fConvertToKline(lastTick)
 
+		Logger.Info(fmt.Sprintf("%+v", newKline))
 		recordNewKline(&newKline)
 	}
 }
