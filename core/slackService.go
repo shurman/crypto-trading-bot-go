@@ -4,12 +4,12 @@ package core
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
 func SendSlack(message string) {
-	jsonData := []byte("{'channel': '" + Config.Slack.Channel + "', 'username': 'Signal Bot', 'text': '" + message + "'}")
+	jsonData := []byte("{'channel': '" + Config.Slack.Channel + "', 'text': '" + message + "'}")
 
 	response, error := http.Post(Config.Slack.Webhook, "application/json", bytes.NewBuffer(jsonData))
 	if error != nil {
@@ -17,7 +17,7 @@ func SendSlack(message string) {
 	}
 
 	defer response.Body.Close()
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		panic(err)
 	}
