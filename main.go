@@ -6,6 +6,10 @@ import (
 	"crypto-trading-bot-go/strategy"
 )
 
+//TODO
+//Download history kline and load
+//verify performance
+
 func main() {
 	core.LoadConfigs()
 	core.InitSlog()

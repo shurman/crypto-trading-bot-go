@@ -10,6 +10,9 @@ import (
 var (
 	klineSlice []*Kline
 	klineLen   int = 0
+
+	NotifyNewKline = make(chan bool)
+	NotifyDone     = make(chan bool)
 )
 
 type Kline struct {
@@ -30,6 +33,7 @@ func recordNewKline(newKline *Kline) {
 
 	Logger.Debug("<- " + fmt.Sprintf("%+v", newKline))
 	NotifyNewKline <- true
+	<-NotifyDone
 }
 
 func GetLastKline(nth int) *Kline {

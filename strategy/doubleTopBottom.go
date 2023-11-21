@@ -4,6 +4,7 @@ package strategy
 import (
 	"crypto-trading-bot-go/core"
 	"fmt"
+	"time"
 )
 
 var (
@@ -13,12 +14,13 @@ var (
 	localLow  = 9999999.99
 )
 
-func doubleTopBottom(notify chan bool) {
+func doubleTopBottom(obj strategyObj) {
 
 	for {
-		<-notify
+		<-obj.notifyNew
 
 		if core.GetKlineSliceLen() < 3 {
+			obj.notifyDone <- true
 			continue
 		}
 
@@ -26,7 +28,7 @@ func doubleTopBottom(notify chan bool) {
 		k2 := core.GetLastKline(2)
 		k3 := core.GetLastKline(3)
 
-		core.Logger.Info(fmt.Sprintf("[doubleTopBottom] ==== state=%d  %+v", state, k1))
+		core.Logger.Info(fmt.Sprintf("[doubleTopBottom] ==== state=%d %s  %+v", state, time.Unix(k1.StartTime/1000, 0), k1))
 
 		if state == 0 {
 			if k1.High > k2.High && k2.High > k3.High && k1.High/k3.High > 1.01 {
@@ -44,7 +46,7 @@ func doubleTopBottom(notify chan bool) {
 			} else if k1.Low < localLow {
 				localLow = k1.Low
 
-			} else if k1.Low > (localHigh-localLow)*0.15 {
+			} else if k1.Low > localLow+(localHigh-localLow)*0.15 {
 				state = 2
 			}
 
@@ -52,7 +54,7 @@ func doubleTopBottom(notify chan bool) {
 			if k1.Low < localLow {
 				state = 3
 
-			} else if k1.Low < borderLow-(localHigh-localLow)*0.4 {
+			} else if k1.Low < localLow-(localHigh-localLow)*0.4 {
 				reset()
 
 			} else if k1.High > localHigh+(localHigh-localLow)*0.4 {
@@ -63,7 +65,7 @@ func doubleTopBottom(notify chan bool) {
 			if k1.High > k2.High {
 				core.Logger.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
 					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
-					" L:" + fmt.Sprintf("%f", k1.High))
+					" L:" + fmt.Sprintf("%f", k1.Low))
 				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
 				state = 4
 			}
@@ -78,7 +80,7 @@ func doubleTopBottom(notify chan bool) {
 				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
 				core.Logger.Info("[Re-Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
 					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
-					" L:" + fmt.Sprintf("%f", k1.High))
+					" L:" + fmt.Sprintf("%f", k1.Low))
 			}
 
 		} else if state == 5 { //phase 2
@@ -91,7 +93,7 @@ func doubleTopBottom(notify chan bool) {
 				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
 				core.Logger.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
 					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
-					" L:" + fmt.Sprintf("%f", k1.High))
+					" L:" + fmt.Sprintf("%f", k1.Low))
 				state = 7
 			}
 		} else if state == 7 {
@@ -103,11 +105,12 @@ func doubleTopBottom(notify chan bool) {
 				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
 				core.Logger.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
 					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
-					" L:" + fmt.Sprintf("%f", k1.High))
+					" L:" + fmt.Sprintf("%f", k1.Low))
 			}
 		}
 
-		core.Logger.Info(fmt.Sprintf("====================== state=%d", state))
+		core.Logger.Info(fmt.Sprintf("====================== state=%d  localHigh=%f localLow=%f", state, localHigh, localLow))
+		obj.notifyDone <- true
 	}
 }
 

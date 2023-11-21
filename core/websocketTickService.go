@@ -9,9 +9,8 @@ import (
 )
 
 var (
-	NotifyNewKline = make(chan bool)
-	lastTick       *futures.WsKline
-	currentTick    *futures.WsKline
+	lastTick    *futures.WsKline
+	currentTick *futures.WsKline
 )
 
 func InitWsTickService() {

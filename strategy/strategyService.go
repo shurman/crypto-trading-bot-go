@@ -10,8 +10,9 @@ var (
 )
 
 type strategyObj struct {
-	execute func(chan bool)
-	notify  chan bool
+	execute    func(strategyObj)
+	notifyNew  chan bool
+	notifyDone chan bool
 }
 
 func InitStrategyService() {
@@ -23,19 +24,20 @@ func InitStrategyService() {
 }
 
 func initCustomStrategies() {
-	strategiesSlice := []func(chan bool){doubleTopBottom}
+	strategiesSlice := []func(strategyObj){doubleTopBottom}
 
 	for _, strategyFunc := range strategiesSlice {
-		strategySlice = append(strategySlice, constructStrategy(strategyFunc, make(chan bool)))
+		strategySlice = append(strategySlice, constructStrategy(strategyFunc))
 	}
 }
 
-func constructStrategy(_execute func(chan bool), _notify chan bool) strategyObj {
+func constructStrategy(_execute func(strategyObj)) strategyObj {
 	newStrategy := strategyObj{
-		execute: _execute,
-		notify:  _notify,
+		execute:    _execute,
+		notifyNew:  make(chan bool),
+		notifyDone: make(chan bool),
 	}
-	go _execute(_notify)
+	go _execute(newStrategy)
 
 	return newStrategy
 }
@@ -45,7 +47,10 @@ func waitPriceFeeding() {
 		<-core.NotifyNewKline
 
 		for _, _strategy := range strategySlice {
-			_strategy.notify <- true
+			_strategy.notifyNew <- true
+			<-_strategy.notifyDone
 		}
+
+		core.NotifyDone <- true
 	}
 }
