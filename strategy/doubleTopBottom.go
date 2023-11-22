@@ -66,9 +66,14 @@ func doubleTopBottom(obj strategyObj) {
 
 		} else if state == 3 {
 			if k1.High > k2.High {
-				core.Logger.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
-					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
-					" L:" + fmt.Sprintf("%f", k1.Low))
+				obj.createOrder(
+					k1,
+					"L1",
+					LONG,
+					k1.High,
+					k1.High+(k1.High-k1.Low),
+					k1.Low,
+				)
 				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
 				state = 4
 			}
@@ -80,10 +85,16 @@ func doubleTopBottom(obj strategyObj) {
 				reset()
 			} else {
 				//cancel order
+				obj.cancelOrder(k1, "L1")
 				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
-				core.Logger.Info("[Re-Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
-					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
-					" L:" + fmt.Sprintf("%f", k1.Low))
+				obj.createOrder(
+					k1,
+					"L1",
+					LONG,
+					k1.High,
+					k1.High+(k1.High-k1.Low),
+					k1.Low,
+				)
 			}
 
 		} else if state == 5 { //phase 2
@@ -94,9 +105,14 @@ func doubleTopBottom(obj strategyObj) {
 		} else if state == 6 {
 			if k1.High > k2.High {
 				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
-				core.Logger.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
-					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
-					" L:" + fmt.Sprintf("%f", k1.Low))
+				obj.createOrder(
+					k1,
+					"L2",
+					LONG,
+					k1.High,
+					k1.High+(k1.High-k1.Low),
+					k1.Low,
+				)
 				state = 7
 			}
 		} else if state == 7 {
@@ -104,11 +120,16 @@ func doubleTopBottom(obj strategyObj) {
 				reset()
 			} else {
 				//cancel order
-				core.Logger.Info("Cancel previous order")
+				obj.cancelOrder(k1, "L2")
 				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
-				core.Logger.Info("[Place Long] Trigger@" + fmt.Sprintf("%f", k1.High) +
-					" P:" + fmt.Sprintf("%f", k1.High+(k1.High-k1.Low)) +
-					" L:" + fmt.Sprintf("%f", k1.Low))
+				obj.createOrder(
+					k1,
+					"L2",
+					LONG,
+					k1.High,
+					k1.High+(k1.High-k1.Low),
+					k1.Low,
+				)
 			}
 		}
 

@@ -147,7 +147,7 @@ func (h *Handler) Handle(ctx context.Context, r slog.Record) error {
 	if h.o.AddSource {
 		frame, _ := runtime.CallersFrames([]uintptr{r.PC}).Next()
 		rawSource := fmt.Sprintf("%s:%d", filepath.Base(frame.Function), frame.Line)
-		source = fmt.Sprintf(" %-32s", rawSource)
+		source = fmt.Sprintf(" %-40s", rawSource)
 	}
 
 	out := strings.Builder{}

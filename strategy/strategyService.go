@@ -3,6 +3,8 @@ package strategy
 
 import (
 	"crypto-trading-bot-go/core"
+	"fmt"
+	"time"
 )
 
 var (
@@ -10,16 +12,10 @@ var (
 )
 
 type strategyObj struct {
+	name      string
 	execute   func(strategyObj)
 	nextKline chan core.Kline
 }
-
-type OrderDirection int
-
-const (
-	LONG  OrderDirection = 1
-	SHORT OrderDirection = -1
-)
 
 func InitStrategyService() {
 	initCustomStrategies()
@@ -32,13 +28,14 @@ func InitStrategyService() {
 func initCustomStrategies() {
 	strategiesSlice := []func(strategyObj){doubleTopBottom}
 
-	for _, strategyFunc := range strategiesSlice {
-		strategySlice = append(strategySlice, constructStrategy(strategyFunc))
+	for idx, strategyFunc := range strategiesSlice {
+		strategySlice = append(strategySlice, constructStrategy(fmt.Sprintf("%d", idx), strategyFunc))
 	}
 }
 
-func constructStrategy(_execute func(strategyObj)) strategyObj {
+func constructStrategy(_name string, _execute func(strategyObj)) strategyObj {
 	newStrategy := strategyObj{
+		name:      _name,
 		execute:   _execute,
 		nextKline: make(chan core.Kline),
 	}
@@ -57,16 +54,27 @@ func waitPriceFeeding() {
 	}
 }
 
-func (*strategyObj) createOrder(
+func (obj *strategyObj) createOrder(
+	kline *core.Kline,
 	id string,
 	dir OrderDirection,
 	entry float64,
 	stopProfit float64,
 	stopLoss float64,
 ) {
-
+	core.Logger.Info(fmt.Sprintf("[%s][%s][%s][%s] Entry:%f P:%f L:%f",
+		time.Unix(kline.StartTime/1000, 0),
+		obj.name,
+		id,
+		dir.toString(),
+		entry,
+		stopProfit,
+		stopLoss))
 }
 
-func (*strategyObj) cancelOrder(id string) {
-
+func (obj *strategyObj) cancelOrder(kline *core.Kline, id string) {
+	core.Logger.Info(fmt.Sprintf("[%s][%s][%s] cancelled",
+		time.Unix(kline.StartTime/1000, 0),
+		obj.name,
+		id))
 }
