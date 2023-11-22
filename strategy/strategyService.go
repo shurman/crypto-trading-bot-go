@@ -10,10 +10,16 @@ var (
 )
 
 type strategyObj struct {
-	execute    func(strategyObj)
-	notifyNew  chan bool
-	notifyDone chan bool
+	execute   func(strategyObj)
+	nextKline chan core.Kline
 }
+
+type OrderDirection int
+
+const (
+	LONG  OrderDirection = 1
+	SHORT OrderDirection = -1
+)
 
 func InitStrategyService() {
 	initCustomStrategies()
@@ -33,9 +39,8 @@ func initCustomStrategies() {
 
 func constructStrategy(_execute func(strategyObj)) strategyObj {
 	newStrategy := strategyObj{
-		execute:    _execute,
-		notifyNew:  make(chan bool),
-		notifyDone: make(chan bool),
+		execute:   _execute,
+		nextKline: make(chan core.Kline),
 	}
 	go _execute(newStrategy)
 
@@ -44,13 +49,24 @@ func constructStrategy(_execute func(strategyObj)) strategyObj {
 
 func waitPriceFeeding() {
 	for {
-		<-core.NotifyNewKline
+		nextKline := <-core.NotifyNewKline
 
 		for _, _strategy := range strategySlice {
-			_strategy.notifyNew <- true
-			<-_strategy.notifyDone
+			_strategy.nextKline <- *nextKline
 		}
-
-		core.NotifyDone <- true
 	}
+}
+
+func (*strategyObj) createOrder(
+	id string,
+	dir OrderDirection,
+	entry float64,
+	stopProfit float64,
+	stopLoss float64,
+) {
+
+}
+
+func (*strategyObj) cancelOrder(id string) {
+
 }

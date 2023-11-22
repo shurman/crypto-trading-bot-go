@@ -7,6 +7,8 @@ import (
 )
 
 //TODO
+//record and output filling position
+
 //Download history kline and load
 //verify performance
 

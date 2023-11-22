@@ -12,21 +12,24 @@ var (
 	borderLow = 0.0
 	localHigh = 0.0
 	localLow  = 9999999.99
+
+	k1 *core.Kline
+	k2 *core.Kline
+	k3 *core.Kline
 )
 
 func doubleTopBottom(obj strategyObj) {
 
 	for {
-		<-obj.notifyNew
+		nextKline := <-obj.nextKline
 
-		if core.GetKlineSliceLen() < 3 {
-			obj.notifyDone <- true
+		k3 = k2
+		k2 = k1
+		k1 = &nextKline
+
+		if k3 == nil {
 			continue
 		}
-
-		k1 := core.GetLastKline(1)
-		k2 := core.GetLastKline(2)
-		k3 := core.GetLastKline(3)
 
 		core.Logger.Info(fmt.Sprintf("[doubleTopBottom] ==== state=%d %s  %+v", state, time.Unix(k1.StartTime/1000, 0), k1))
 
@@ -110,7 +113,6 @@ func doubleTopBottom(obj strategyObj) {
 		}
 
 		core.Logger.Info(fmt.Sprintf("====================== state=%d  localHigh=%f localLow=%f", state, localHigh, localLow))
-		obj.notifyDone <- true
 	}
 }
 

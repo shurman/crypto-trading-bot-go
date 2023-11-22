@@ -11,8 +11,7 @@ var (
 	klineSlice []*Kline
 	klineLen   int = 0
 
-	NotifyNewKline = make(chan bool)
-	NotifyDone     = make(chan bool)
+	NotifyNewKline = make(chan *Kline)
 )
 
 type Kline struct {
@@ -23,25 +22,24 @@ type Kline struct {
 	Close     float64
 }
 
-func GetKlineSliceLen() int {
-	return klineLen
-}
+// func GetKlineSliceLen() int {
+// 	return klineLen
+// }
 
 func recordNewKline(newKline *Kline) {
 	klineSlice = append(klineSlice, newKline)
 	klineLen = len(klineSlice)
 
 	Logger.Debug("<- " + fmt.Sprintf("%+v", newKline))
-	NotifyNewKline <- true
-	<-NotifyDone
+	NotifyNewKline <- newKline
 }
 
-func GetLastKline(nth int) *Kline {
-	if klineLen-nth < 0 {
-		panic("Index out of range")
-	}
-	return klineSlice[klineLen-nth]
-}
+// func GetLastKline(nth int) *Kline {
+// 	if klineLen-nth < 0 {
+// 		panic("Index out of range")
+// 	}
+// 	return klineSlice[klineLen-nth]
+// }
 
 func fConvertToKline(tick *futures.WsKline) Kline {
 	return Kline{
