@@ -1,7 +1,8 @@
-// logInitializer
-package core
+// logInitializerService
+package service
 
 import (
+	"crypto-trading-bot-go/core"
 	"log/slog"
 )
 
@@ -22,6 +23,6 @@ func InitSlog() {
 		AddSource: true,
 	}
 
-	Logger = slog.New(ColorHandler(options))
+	Logger = slog.New(core.ColorHandler(options))
 	slog.SetDefault(Logger)
 }

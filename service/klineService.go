@@ -1,32 +1,25 @@
 // klineService
-package core
+package service
 
 import (
+	"crypto-trading-bot-go/core"
 	"fmt"
 
 	"github.com/adshao/go-binance/v2/futures"
 )
 
 var (
-	klineSlice []*Kline
+	klineSlice []*core.Kline
 	klineLen   int = 0
 
-	NotifyNewKline = make(chan *Kline)
+	NotifyNewKline = make(chan *core.Kline)
 )
-
-type Kline struct {
-	StartTime int64
-	Open      float64
-	High      float64
-	Low       float64
-	Close     float64
-}
 
 // func GetKlineSliceLen() int {
 // 	return klineLen
 // }
 
-func recordNewKline(newKline *Kline) {
+func recordNewKline(newKline *core.Kline) {
 	klineSlice = append(klineSlice, newKline)
 	klineLen = len(klineSlice)
 
@@ -41,22 +34,24 @@ func recordNewKline(newKline *Kline) {
 // 	return klineSlice[klineLen-nth]
 // }
 
-func fConvertToKline(tick *futures.WsKline) Kline {
-	return Kline{
+func fConvertToKline(tick *futures.WsKline) core.Kline {
+	return core.Kline{
 		StartTime: tick.StartTime,
 		Open:      parseFloat(tick.Open),
 		High:      parseFloat(tick.High),
 		Low:       parseFloat(tick.Low),
 		Close:     parseFloat(tick.Close),
+		IsNew:     true,
 	}
 }
 
-func kConvertKline(tick *futures.Kline) Kline {
-	return Kline{
+func kConvertKline(tick *futures.Kline) core.Kline {
+	return core.Kline{
 		StartTime: tick.OpenTime,
 		Open:      parseFloat(tick.Open),
 		High:      parseFloat(tick.High),
 		Low:       parseFloat(tick.Low),
 		Close:     parseFloat(tick.Close),
+		IsNew:     false,
 	}
 }

@@ -4,6 +4,7 @@ package strategy
 import (
 	"crypto-trading-bot-go/core"
 	"fmt"
+	"log/slog"
 	"time"
 )
 
@@ -18,10 +19,10 @@ var (
 	k3 *core.Kline
 )
 
-func doubleTopBottom(obj strategyObj) {
+func DoubleTopBottom(obj core.StrategyObj) {
 
 	for {
-		nextKline := <-obj.nextKline
+		nextKline := <-obj.NextKline
 
 		k3 = k2
 		k2 = k1
@@ -31,7 +32,7 @@ func doubleTopBottom(obj strategyObj) {
 			continue
 		}
 
-		core.Logger.Info(fmt.Sprintf("[doubleTopBottom] ==== state=%d %s  %+v", state, time.Unix(k1.StartTime/1000, 0), k1))
+		slog.Info(fmt.Sprintf("[doubleTopBottom] state=%d %s %s", state, time.Unix(k1.StartTime/1000, 0), k1.ToString()))
 
 		if state == 0 {
 			if k1.High > k2.High && k2.High > k3.High && k1.High/k3.High > 1.01 {
@@ -66,10 +67,11 @@ func doubleTopBottom(obj strategyObj) {
 
 		} else if state == 3 {
 			if k1.High > k2.High {
-				obj.createOrder(
+				obj.CreateOrder(
 					k1,
 					"L1",
-					LONG,
+					core.LONG,
+					1,
 					k1.High,
 					k1.High+(k1.High-k1.Low),
 					k1.Low,
@@ -81,16 +83,17 @@ func doubleTopBottom(obj strategyObj) {
 		} else if state == 4 {
 			if k1.High > k2.High { // means filled
 				//state = 5
-				core.Logger.Info("[Filled]")
+				slog.Info("[Filled]")
 				reset()
 			} else {
 				//cancel order
-				obj.cancelOrder(k1, "L1")
+				obj.CancelOrder(k1, "L1")
 				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
-				obj.createOrder(
+				obj.CreateOrder(
 					k1,
 					"L1",
-					LONG,
+					core.LONG,
+					1,
 					k1.High,
 					k1.High+(k1.High-k1.Low),
 					k1.Low,
@@ -105,10 +108,11 @@ func doubleTopBottom(obj strategyObj) {
 		} else if state == 6 {
 			if k1.High > k2.High {
 				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
-				obj.createOrder(
+				obj.CreateOrder(
 					k1,
 					"L2",
-					LONG,
+					core.LONG,
+					1,
 					k1.High,
 					k1.High+(k1.High-k1.Low),
 					k1.Low,
@@ -120,12 +124,13 @@ func doubleTopBottom(obj strategyObj) {
 				reset()
 			} else {
 				//cancel order
-				obj.cancelOrder(k1, "L2")
+				obj.CancelOrder(k1, "L2")
 				//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
-				obj.createOrder(
+				obj.CreateOrder(
 					k1,
 					"L2",
-					LONG,
+					core.LONG,
+					1,
 					k1.High,
 					k1.High+(k1.High-k1.Low),
 					k1.Low,
@@ -133,7 +138,7 @@ func doubleTopBottom(obj strategyObj) {
 			}
 		}
 
-		core.Logger.Info(fmt.Sprintf("====================== state=%d  localHigh=%f localLow=%f", state, localHigh, localLow))
+		slog.Info(fmt.Sprintf("================= state=%d  localHigh=%f localLow=%f", state, localHigh, localLow))
 	}
 }
 

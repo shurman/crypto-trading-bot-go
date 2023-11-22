@@ -1,5 +1,5 @@
 // websocketTickService
-package core
+package service
 
 import (
 	"fmt"

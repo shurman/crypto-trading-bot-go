@@ -2,8 +2,7 @@
 package main
 
 import (
-	"crypto-trading-bot-go/core"
-	"crypto-trading-bot-go/strategy"
+	"crypto-trading-bot-go/service"
 )
 
 //TODO
@@ -13,14 +12,14 @@ import (
 //verify performance
 
 func main() {
-	core.LoadConfigs()
-	core.InitSlog()
+	service.LoadConfigs()
+	service.InitSlog()
 
-	strategy.InitStrategyService()
+	service.InitStrategyService()
 
-	core.FutureClientInit()
-	core.LoadHistoryKline()
-	go core.InitWsTickService()
+	service.FutureClientInit()
+	service.LoadHistoryKline()
+	go service.InitWsTickService()
 
 	select {}
 }

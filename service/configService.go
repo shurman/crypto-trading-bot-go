@@ -1,5 +1,5 @@
 // configService.go
-package core
+package service
 
 import (
 	"github.com/spf13/viper"

@@ -1,5 +1,5 @@
 // slackService
-package core
+package service
 
 import (
 	"bytes"

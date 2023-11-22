@@ -1,5 +1,5 @@
 // historyKlineService
-package core
+package service
 
 import (
 	"context"
