@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	strategySlice []core.StrategyObj
+	strategySlice []core.StrategyBO
 )
 
 func InitStrategyService() {
@@ -20,15 +20,15 @@ func InitStrategyService() {
 }
 
 func initCustomStrategies() {
-	strategiesSlice := []func(core.StrategyObj){strategy.DoubleTopBottom}
+	strategiesSlice := []func(core.StrategyBO){strategy.DoubleTopBottom}
 
 	for idx, strategyFunc := range strategiesSlice {
 		strategySlice = append(strategySlice, constructStrategy(fmt.Sprintf("%d", idx), strategyFunc))
 	}
 }
 
-func constructStrategy(_name string, _execute func(core.StrategyObj)) core.StrategyObj {
-	newStrategy := core.StrategyObj{
+func constructStrategy(_name string, _execute func(core.StrategyBO)) core.StrategyBO {
+	newStrategy := core.StrategyBO{
 		Name:      _name,
 		Execute:   _execute,
 		NextKline: make(chan core.Kline),

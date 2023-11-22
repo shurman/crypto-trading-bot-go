@@ -19,7 +19,7 @@ var (
 	k3 *core.Kline
 )
 
-func DoubleTopBottom(obj core.StrategyObj) {
+func DoubleTopBottom(obj core.StrategyBO) {
 
 	for {
 		nextKline := <-obj.NextKline

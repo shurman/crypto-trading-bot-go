@@ -6,6 +6,7 @@ import (
 )
 
 //TODO
+//detect fill and exit
 //record and output filling position
 
 //Download history kline and load

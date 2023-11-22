@@ -7,13 +7,13 @@ import (
 	"time"
 )
 
-type StrategyObj struct {
+type StrategyBO struct {
 	Name      string
-	Execute   func(StrategyObj)
+	Execute   func(StrategyBO)
 	NextKline chan Kline
 }
 
-func (obj *StrategyObj) CreateOrder(
+func (obj *StrategyBO) CreateOrder(
 	kline *Kline,
 	id string,
 	dir OrderDirection,
@@ -37,7 +37,7 @@ func (obj *StrategyObj) CreateOrder(
 	}
 }
 
-func (obj *StrategyObj) CancelOrder(kline *Kline, id string) {
+func (obj *StrategyBO) CancelOrder(kline *Kline, id string) {
 	slog.Info(fmt.Sprintf("[%s][%s][%s] cancelled",
 		time.Unix(kline.StartTime/1000, 0),
 		obj.Name,
