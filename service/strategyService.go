@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	strategySlice []core.StrategyBO
+	strategySlice []*core.StrategyBO
 )
 
 func InitStrategyService() {
@@ -20,22 +20,11 @@ func InitStrategyService() {
 }
 
 func initCustomStrategies() {
-	strategiesSlice := []func(core.StrategyBO){strategy.DoubleTopBottom}
+	strategiesSlice := []func(*core.Kline, *core.StrategyBO){strategy.DoubleTopBottom}
 
 	for idx, strategyFunc := range strategiesSlice {
-		strategySlice = append(strategySlice, constructStrategy(fmt.Sprintf("%d", idx), strategyFunc))
+		strategySlice = append(strategySlice, core.ConstructStrategy(fmt.Sprintf("%d", idx), strategyFunc))
 	}
-}
-
-func constructStrategy(_name string, _execute func(core.StrategyBO)) core.StrategyBO {
-	newStrategy := core.StrategyBO{
-		Name:      _name,
-		Execute:   _execute,
-		NextKline: make(chan core.Kline),
-	}
-	go _execute(newStrategy)
-
-	return newStrategy
 }
 
 func waitPriceFeeding() {
@@ -43,7 +32,11 @@ func waitPriceFeeding() {
 		nextKline := <-NotifyNewKline
 
 		for _, _strategy := range strategySlice {
-			_strategy.NextKline <- *nextKline
+			_strategy.GetChanNextKline() <- *nextKline
+		}
+
+		for _, _strategy := range strategySlice {
+			<-_strategy.GetChanDoneAction()
 		}
 	}
 }

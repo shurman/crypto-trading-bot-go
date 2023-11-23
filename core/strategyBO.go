@@ -1,49 +1,39 @@
-// strategyObj
+// StrategyBO
 package core
 
-import (
-	"fmt"
-	"log/slog"
-	"time"
-)
-
 type StrategyBO struct {
-	Name      string
-	Execute   func(StrategyBO)
-	NextKline chan Kline
+	name       string
+	nextKline  chan Kline
+	doneAction chan bool
+	//Execute   func(StrategyBO)
 }
 
-func (obj *StrategyBO) CreateOrder(
-	kline *Kline,
-	id string,
-	dir OrderDirection,
-	quantity float64,
-	entry float64,
-	stopProfit float64,
-	stopLoss float64,
-) {
-	slog.Info(fmt.Sprintf("[%s][%s-%s] %s %f@%f P:%f L:%f",
-		time.Unix(kline.StartTime/1000, 0),
-		obj.Name,
-		id,
-		dir.toString(),
-		quantity,
-		entry,
-		stopProfit,
-		stopLoss))
-
-	if kline.IsNew {
-		//send slack
+func ConstructStrategy(_name string, _execute func(*Kline, *StrategyBO)) *StrategyBO {
+	newStrategy := &StrategyBO{
+		name:       _name,
+		nextKline:  make(chan Kline),
+		doneAction: make(chan bool),
+		//Execute:   _execute,
 	}
+	go func() {
+		for {
+			nextKline := <-newStrategy.nextKline
+			_execute(&nextKline, newStrategy)
+			newStrategy.doneAction <- true
+		}
+	}()
+
+	return newStrategy
 }
 
-func (obj *StrategyBO) CancelOrder(kline *Kline, id string) {
-	slog.Info(fmt.Sprintf("[%s][%s][%s] cancelled",
-		time.Unix(kline.StartTime/1000, 0),
-		obj.Name,
-		id))
+func (bo *StrategyBO) GetName() string {
+	return bo.name
+}
 
-	if kline.IsNew {
-		//send slack
-	}
+func (bo *StrategyBO) GetChanNextKline() chan Kline {
+	return bo.nextKline
+}
+
+func (bo *StrategyBO) GetChanDoneAction() chan bool {
+	return bo.doneAction
 }
