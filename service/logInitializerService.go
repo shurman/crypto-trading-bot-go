@@ -10,7 +10,7 @@ var (
 	Logger *slog.Logger
 )
 
-func InitSlog() {
+func init() {
 	level := new(slog.Level)
 	err := level.UnmarshalText([]byte(Config.System.Loglevel))
 

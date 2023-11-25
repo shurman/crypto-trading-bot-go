@@ -3,6 +3,7 @@ package main
 
 import (
 	"crypto-trading-bot-go/service"
+	_ "crypto-trading-bot-go/strategy"
 )
 
 //TODO
@@ -13,9 +14,6 @@ import (
 //verify performance
 
 func main() {
-	service.LoadConfigs()
-	service.InitSlog()
-
 	service.InitStrategyService()
 
 	service.FutureClientInit()

@@ -36,7 +36,7 @@ type SlackConfigs struct {
 	Channel string `mapstructure:"channel"`
 }
 
-func LoadConfigs() {
+func init() {
 	reader := viper.New()
 
 	reader.SetConfigName("config")

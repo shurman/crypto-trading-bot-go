@@ -3,6 +3,7 @@ package strategy
 
 import (
 	"crypto-trading-bot-go/core"
+	"crypto-trading-bot-go/service"
 	"fmt"
 	"log/slog"
 )
@@ -17,6 +18,10 @@ var (
 	k2 *core.Kline
 	k3 *core.Kline
 )
+
+func init() {
+	service.RegisterStrategyFunc(DoubleTopBottom)
+}
 
 func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 	k3 = k2
@@ -62,10 +67,10 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 
 	} else if state == 3 {
 		if k1.High > k2.High {
-			core.CreateOrder(
+			service.CreateOrder(
 				bo,
 				"L1",
-				core.LONG,
+				core.ORDER_LONG,
 				1,
 				k1.High,
 				k1.High+(k1.High-k1.Low),
@@ -83,10 +88,10 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			reset()
 		} else {
 			//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
-			core.CreateOrder(
+			service.CreateOrder(
 				bo,
 				"L1",
-				core.LONG,
+				core.ORDER_LONG,
 				1,
 				k1.High,
 				k1.High+(k1.High-k1.Low),
@@ -103,10 +108,10 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 	} else if state == 6 {
 		if k1.High > k2.High {
 			//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
-			core.CreateOrder(
+			service.CreateOrder(
 				bo,
 				"L2",
-				core.LONG,
+				core.ORDER_LONG,
 				1,
 				k1.High,
 				k1.High+(k1.High-k1.Low),
@@ -120,10 +125,10 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			reset()
 		} else {
 			//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
-			core.CreateOrder(
+			service.CreateOrder(
 				bo,
 				"L2",
-				core.LONG,
+				core.ORDER_LONG,
 				1,
 				k1.High,
 				k1.High+(k1.High-k1.Low),

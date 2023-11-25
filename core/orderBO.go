@@ -1,17 +1,10 @@
 package core
 
 import (
-	"fmt"
-	"log/slog"
 	"time"
 )
 
-var (
-	orderMap     = make(map[string]*orderBO)
-	currentKline *Kline
-)
-
-type orderBO struct {
+type OrderBO struct {
 	createTime  time.Time
 	id          string
 	status      OrderStatus
@@ -24,111 +17,60 @@ type orderBO struct {
 	finalProfit float64
 }
 
-type OrderStatus string
-
-const (
-	UNKWN  OrderStatus = "UNKWN"
-	OPEN   OrderStatus = "OPEN"
-	ENTRY  OrderStatus = "ENTRY"
-	EXIT   OrderStatus = "EXIT"
-	CANCEL OrderStatus = "CANCEL"
-)
-
-func SetCurrentKline(k *Kline) {
-	currentKline = k
-}
-
-func CheckOrderFilled() {
-
-}
-
-func toStandardId(strategyBO *StrategyBO, id string) string {
-	return strategyBO.GetName() + "-" + id
-}
-
-func CreateOrder(
-	strategyBO *StrategyBO,
+func ConstructOrderBO(
+	createTime time.Time,
 	id string,
+	status OrderStatus,
 	dir OrderDirection,
 	quantity float64,
 	entry float64,
 	stopProfit float64,
 	stopLoss float64,
-	sendNotify bool,
-) {
-
-	newOrder := &orderBO{
-		createTime: currentKline.CloseTime,
-		id:         toStandardId(strategyBO, id),
-		status:     OPEN,
+) *OrderBO {
+	return &OrderBO{
+		createTime: createTime,
+		id:         id,
+		status:     ORDER_OPEN,
 		dir:        dir,
 		quantity:   quantity,
 		entry:      entry,
 		stopProfit: stopProfit,
 		stopLoss:   stopLoss,
 	}
-
-	if !orderPut(newOrder.id, newOrder) {
-		return
-	}
-
-	slog.Info(fmt.Sprintf("[%s][%s-%s] %s %f@%f P:%f L:%f",
-		currentKline.CloseTime,
-		strategyBO.GetName(),
-		id,
-		dir.toString(),
-		quantity,
-		entry,
-		stopProfit,
-		stopLoss))
-
-	if sendNotify {
-		//send slack
-	}
-
 }
 
-func CancelOrder(
-	strategyBO *StrategyBO,
-	id string,
-	sendNotify bool,
-) {
-	order, exists := orderMap[toStandardId(strategyBO, id)]
-	if !exists {
-		return
-	}
-
-	order.status = CANCEL
-
-	slog.Info(fmt.Sprintf("[%s][%s][%s] cancelled",
-		currentKline.CloseTime,
-		strategyBO.GetName(),
-		id))
-
-	if sendNotify {
-		//send slack
-	}
+func (bo *OrderBO) GetId() string {
+	return bo.id
 }
 
-func GetOrderStatus(strategyBO *StrategyBO, id string) OrderStatus {
-	order, exists := orderMap[toStandardId(strategyBO, id)]
-
-	if exists {
-		return order.status
-	}
-	return UNKWN
+func (bo *OrderBO) GetStatus() OrderStatus {
+	return bo.status
 }
 
-func orderPut(id string, order *orderBO) bool {
-	if order, exists := orderMap[id]; exists {
-		if order.status == OPEN {
-			orderMap[id] = order
-			return true
-		} else {
-			return false
-		}
-	}
+func (bo *OrderBO) SetStatus(_status OrderStatus) {
+	bo.status = _status
+}
 
-	orderMap[id] = order
-	return true
+type OrderStatus string
+
+const (
+	ORDER_UNKWN  OrderStatus = "UNKWN"
+	ORDER_OPEN   OrderStatus = "OPEN"
+	ORDER_ENTRY  OrderStatus = "ENTRY"
+	ORDER_EXIT   OrderStatus = "EXIT"
+	ORDER_CANCEL OrderStatus = "CANCEL"
+)
+
+type OrderDirection int
+
+const (
+	ORDER_LONG  OrderDirection = 1
+	ORDER_SHORT OrderDirection = -1
+)
+
+func (dir OrderDirection) ToString() string {
+	if dir == ORDER_LONG {
+		return "LONG"
+	}
+	return "SHORT"
 }

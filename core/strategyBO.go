@@ -26,9 +26,9 @@ func ConstructStrategy(_name string, _execute func(*Kline, *StrategyBO)) *Strate
 	return newStrategy
 }
 
-func (bo *StrategyBO) GetName() string {
-	return bo.name
-}
+// func (bo *StrategyBO) GetName() string {
+// 	return bo.name
+// }
 
 func (bo *StrategyBO) GetChanNextKline() chan Kline {
 	return bo.nextKline
@@ -36,4 +36,8 @@ func (bo *StrategyBO) GetChanNextKline() chan Kline {
 
 func (bo *StrategyBO) GetChanDoneAction() chan bool {
 	return bo.doneAction
+}
+
+func (bo *StrategyBO) ToStandardId(id string) string {
+	return bo.name + "-" + id
 }

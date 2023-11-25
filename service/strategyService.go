@@ -3,12 +3,12 @@ package service
 
 import (
 	"crypto-trading-bot-go/core"
-	"crypto-trading-bot-go/strategy"
 	"fmt"
 )
 
 var (
-	strategySlice []*core.StrategyBO
+	strategiesFuncSlice []func(*core.Kline, *core.StrategyBO)
+	strategySlice       []*core.StrategyBO
 )
 
 func InitStrategyService() {
@@ -19,10 +19,12 @@ func InitStrategyService() {
 	Logger.Info("[InitStrategyService] Initialized")
 }
 
-func initCustomStrategies() {
-	strategiesSlice := []func(*core.Kline, *core.StrategyBO){strategy.DoubleTopBottom}
+func RegisterStrategyFunc(f func(*core.Kline, *core.StrategyBO)) {
+	strategiesFuncSlice = append(strategiesFuncSlice, f)
+}
 
-	for idx, strategyFunc := range strategiesSlice {
+func initCustomStrategies() {
+	for idx, strategyFunc := range strategiesFuncSlice {
 		strategySlice = append(strategySlice, core.ConstructStrategy(fmt.Sprintf("%d", idx), strategyFunc))
 	}
 }
