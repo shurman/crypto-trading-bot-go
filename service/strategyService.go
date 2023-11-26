@@ -40,5 +40,7 @@ func waitPriceFeeding() {
 		for _, _strategy := range strategySlice {
 			<-_strategy.GetChanDoneAction()
 		}
+
+		NotifyKlineDone <- true
 	}
 }

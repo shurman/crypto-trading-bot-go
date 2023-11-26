@@ -7,8 +7,8 @@ import (
 )
 
 //TODO
-//detect fill and exit
 //record and output filling position
+//position size for same risk
 
 //Download history kline and load
 //verify performance

@@ -13,7 +13,7 @@ type OrderBO struct {
 	entry       float64
 	stopProfit  float64
 	stopLoss    float64
-	fillTime    int64
+	fillTime    time.Time
 	finalProfit float64
 }
 
@@ -47,8 +47,30 @@ func (bo *OrderBO) GetStatus() OrderStatus {
 	return bo.status
 }
 
-func (bo *OrderBO) SetStatus(_status OrderStatus) {
-	bo.status = _status
+func (bo *OrderBO) GetEntryPrice() float64 {
+	return bo.entry
+}
+
+func (bo *OrderBO) GetStopProfitPrice() float64 {
+	return bo.stopProfit
+}
+
+func (bo *OrderBO) GetStopLossPrice() float64 {
+	return bo.stopLoss
+}
+
+func (bo *OrderBO) Fill(_time time.Time) {
+	bo.status = ORDER_ENTRY
+	bo.fillTime = _time
+}
+
+func (bo *OrderBO) Exit(_price float64) {
+	bo.status = ORDER_EXIT
+	bo.finalProfit = (_price - bo.entry) * float64(bo.dir)
+}
+
+func (bo *OrderBO) Cancel() {
+	bo.status = ORDER_CANCEL
 }
 
 type OrderStatus string
@@ -61,7 +83,7 @@ const (
 	ORDER_CANCEL OrderStatus = "CANCEL"
 )
 
-type OrderDirection int
+type OrderDirection float64
 
 const (
 	ORDER_LONG  OrderDirection = 1

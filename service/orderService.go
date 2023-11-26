@@ -16,7 +16,22 @@ func SetCurrentKline(k *core.Kline) {
 }
 
 func CheckOrderFilled() {
-
+	for _, v := range orderMap {
+		if v.GetStatus() == core.ORDER_OPEN {
+			if v.GetEntryPrice() <= currentKline.High && v.GetEntryPrice() >= currentKline.Low {
+				v.Fill(currentKline.CloseTime)
+				slog.Info(fmt.Sprintf("[%s] filled  %+v", v.GetId(), v))
+			}
+		} else if v.GetStatus() == core.ORDER_ENTRY {
+			if v.GetStopProfitPrice() <= currentKline.High && v.GetStopProfitPrice() >= currentKline.Low {
+				v.Exit(v.GetStopProfitPrice())
+				slog.Info(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
+			} else if v.GetStopLossPrice() <= currentKline.High && v.GetStopLossPrice() >= currentKline.Low {
+				v.Exit(v.GetStopLossPrice())
+				slog.Info(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
+			}
+		}
+	}
 }
 
 func CreateOrder(
@@ -42,10 +57,11 @@ func CreateOrder(
 	)
 
 	if !orderPut(newOrder.GetId(), newOrder) {
+		slog.Warn("Order " + newOrder.GetId() + " not created")
 		return
 	}
 
-	slog.Info(fmt.Sprintf("[%s][%s] %s %f@%f P:%f L:%f",
+	slog.Info(fmt.Sprintf("[%s][%s] create %s %f@%f P:%f L:%f",
 		currentKline.CloseTime,
 		strategyBO.ToStandardId(_id),
 		dir.ToString(),
@@ -60,6 +76,18 @@ func CreateOrder(
 
 }
 
+func ExitOrder(
+	strategyBO *core.StrategyBO,
+	_id string,
+) {
+	order, exists := orderMap[strategyBO.ToStandardId(_id)]
+	if !exists {
+		return
+	}
+
+	order.Exit(currentKline.Close)
+}
+
 func CancelOrder(
 	strategyBO *core.StrategyBO,
 	_id string,
@@ -70,7 +98,7 @@ func CancelOrder(
 		return
 	}
 
-	order.SetStatus(core.ORDER_CANCEL)
+	order.Cancel()
 
 	slog.Info(fmt.Sprintf("[%s][%s] cancelled",
 		currentKline.CloseTime,
@@ -91,16 +119,16 @@ func GetOrderStatus(strategyBO *core.StrategyBO, id string) core.OrderStatus {
 	return core.ORDER_UNKWN
 }
 
-func orderPut(id string, order *core.OrderBO) bool {
+func orderPut(id string, newOrder *core.OrderBO) bool {
 	if order, exists := orderMap[id]; exists {
 		if order.GetStatus() == core.ORDER_OPEN {
-			orderMap[id] = order
+			orderMap[id] = newOrder
 			return true
 		} else {
 			return false
 		}
 	}
 
-	orderMap[id] = order
+	orderMap[id] = newOrder
 	return true
 }

@@ -13,7 +13,8 @@ var (
 	//klineSlice []*core.Kline
 	//klineLen   int = 0
 
-	NotifyNewKline = make(chan *core.Kline)
+	NotifyNewKline  = make(chan *core.Kline)
+	NotifyKlineDone = make(chan bool)
 )
 
 // func GetKlineSliceLen() int {
@@ -22,13 +23,14 @@ var (
 
 func recordNewKline(newKline *core.Kline) {
 	SetCurrentKline(newKline)
-	CheckOrderFilled() //TODO
+	CheckOrderFilled()
 
 	//klineSlice = append(klineSlice, newKline)
 	//klineLen = len(klineSlice)
 
 	Logger.Debug("<- " + fmt.Sprintf("%+v", newKline))
 	NotifyNewKline <- newKline
+	<-NotifyKlineDone
 }
 
 // func GetLastKline(nth int) *Kline {
