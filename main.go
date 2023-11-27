@@ -9,15 +9,22 @@ import (
 //TODO
 //record and output filling position
 
-//Download history kline and load
 //verify performance
 
 func main() {
-	//service.DownloadRawHistoryKline(service.Config.Trading.Symbol, service.Config.Trading.Interval, 1600000000000, 1500)
 	service.InitStrategyService()
-
-	service.LoadHistoryKline()
-	go service.InitWsTickService()
+	//onlineMode()
+	localMode()
 
 	select {}
+}
+
+func onlineMode() {
+	service.LoadHistoryKline()
+	go service.InitWsTickService()
+}
+
+func localMode() {
+	// service.DownloadRawHistoryKline(service.Config.Trading.Symbol, service.Config.Trading.Interval, 1600000000000, 1500)
+	service.LoadRawHistoryKline(service.Config.Trading.Symbol, service.Config.Trading.Interval)
 }

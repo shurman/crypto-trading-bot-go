@@ -5,7 +5,7 @@ import (
 	"crypto-trading-bot-go/core"
 	"crypto-trading-bot-go/service"
 	"fmt"
-	"log/slog"
+	// "log/slog"
 )
 
 var (
@@ -15,6 +15,8 @@ var (
 	localLow  = 9999999.99
 
 	singleLoss = 30.0
+
+	orderId = 1
 
 	k1 *core.Kline
 	k2 *core.Kline
@@ -34,7 +36,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		return
 	}
 
-	slog.Info(fmt.Sprintf("[doubleTopBottom] state=%d %s", state, k1.ToString()))
+	//slog.Info(fmt.Sprintf("[doubleTopBottom] state=%d %s", state, k1.ToString()))
 
 	if state == 0 {
 		if k1.High > k2.High && k2.High > k3.High && k1.High/k3.High > 1.01 {
@@ -71,7 +73,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		if k1.High > k2.High {
 			service.CreateOrder(
 				bo,
-				"L1",
+				genOrderId(),
 				core.ORDER_LONG,
 				singleLoss/(k1.High-k1.Low),
 				k1.High,
@@ -84,15 +86,16 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		}
 
 	} else if state == 4 {
-		if k1.High > k2.High { // means filled
+		if service.GetOrderStatus(bo, genOrderId()) == core.ORDER_ENTRY { // means filled
 			//state = 5
-			slog.Info("[Filled]")
+			//slog.Info("[Filled]")
+			orderId++
 			reset()
 		} else {
 			//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
 			service.CreateOrder(
 				bo,
-				"L1",
+				genOrderId(),
 				core.ORDER_LONG,
 				singleLoss/(k1.High-k1.Low),
 				k1.High,
@@ -112,7 +115,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
 			service.CreateOrder(
 				bo,
-				"L2",
+				genOrderId(),
 				core.ORDER_LONG,
 				singleLoss/(k1.High-k1.Low),
 				k1.High,
@@ -129,7 +132,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			//place trigger order  in:k1.High loss:k1.Low profit:k1.High+(k1.High-k1.Low)
 			service.CreateOrder(
 				bo,
-				"L2",
+				genOrderId(),
 				core.ORDER_LONG,
 				singleLoss/(k1.High-k1.Low),
 				k1.High,
@@ -140,7 +143,11 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		}
 	}
 
-	slog.Info(fmt.Sprintf("================= state=%d  localHigh=%f localLow=%f", state, localHigh, localLow))
+	//slog.Info(fmt.Sprintf("================= state=%d  localHigh=%f localLow=%f", state, localHigh, localLow))
+}
+
+func genOrderId() string {
+	return fmt.Sprintf("L%d", orderId)
 }
 
 func reset() {

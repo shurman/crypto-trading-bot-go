@@ -66,7 +66,7 @@ func (bo *OrderBO) Fill(_time time.Time) {
 
 func (bo *OrderBO) Exit(_price float64) {
 	bo.status = ORDER_EXIT
-	bo.finalProfit = (_price - bo.entry) * float64(bo.dir)
+	bo.finalProfit = (_price - bo.entry) * bo.quantity * float64(bo.dir)
 }
 
 func (bo *OrderBO) Cancel() {

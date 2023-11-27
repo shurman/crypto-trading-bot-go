@@ -3,6 +3,7 @@ package service
 
 import (
 	"context"
+	"crypto-trading-bot-go/core"
 	"fmt"
 	"io"
 	"log/slog"
@@ -13,6 +14,8 @@ import (
 
 	"github.com/adshao/go-binance/v2"
 	"github.com/adshao/go-binance/v2/futures"
+
+	"github.com/bitly/go-simplejson"
 )
 
 var (
@@ -31,7 +34,7 @@ func LoadHistoryKline() {
 		Do(context.Background())
 
 	for _, fKline := range historyKlines[:len(historyKlines)-1] { //remove last one because of not closed
-		hKline := kConvertKline(fKline)
+		hKline := core.ConvertKlineFromFuturesKline(fKline)
 
 		Logger.Debug("Loaded " + fmt.Sprintf("%+v", hKline))
 		recordNewKline(&hKline)
@@ -67,5 +70,47 @@ func DownloadRawHistoryKline(symbol string, interval string, startTime int64, li
 
 		time.Sleep(5 * time.Second)
 		startTime = time.Unix(startTime/1000, 0).Add(time.Minute * time.Duration(15*limit)).UnixMilli()
+	}
+}
+
+func LoadRawHistoryKline(symbol string, interval string) {
+	data, err := os.ReadFile(symbol + "_" + interval + ".txt")
+
+	if err != nil {
+		panic(err)
+	}
+
+	rawKlines := "[" + strings.ReplaceAll(string(data), "\n", "") + "[]]"
+
+	json, err := simplejson.NewJson([]byte(rawKlines))
+
+	if err != nil {
+		panic(err)
+	}
+
+	num := len(json.MustArray()) - 1
+
+	for i := 0; i < num; i++ {
+		item := json.GetIndex(i)
+
+		if len(item.MustArray()) < 11 {
+			panic("Kline format error")
+		}
+
+		kline := core.ConvertKlineFromFuturesKline(&futures.Kline{
+			OpenTime:                 item.GetIndex(0).MustInt64(),
+			Open:                     item.GetIndex(1).MustString(),
+			High:                     item.GetIndex(2).MustString(),
+			Low:                      item.GetIndex(3).MustString(),
+			Close:                    item.GetIndex(4).MustString(),
+			Volume:                   item.GetIndex(5).MustString(),
+			CloseTime:                item.GetIndex(6).MustInt64(),
+			QuoteAssetVolume:         item.GetIndex(7).MustString(),
+			TradeNum:                 item.GetIndex(8).MustInt64(),
+			TakerBuyBaseAssetVolume:  item.GetIndex(9).MustString(),
+			TakerBuyQuoteAssetVolume: item.GetIndex(10).MustString(),
+		})
+
+		recordNewKline(&kline)
 	}
 }

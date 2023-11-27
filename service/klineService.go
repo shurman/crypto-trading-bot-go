@@ -4,9 +4,6 @@ package service
 import (
 	"crypto-trading-bot-go/core"
 	"fmt"
-	"time"
-
-	"github.com/adshao/go-binance/v2/futures"
 )
 
 var (
@@ -39,27 +36,3 @@ func recordNewKline(newKline *core.Kline) {
 // 	}
 // 	return klineSlice[klineLen-nth]
 // }
-
-func fConvertToKline(tick *futures.WsKline) core.Kline {
-	return core.Kline{
-		StartTime: time.Unix(tick.StartTime/1000, 0),
-		Open:      parseFloat(tick.Open),
-		High:      parseFloat(tick.High),
-		Low:       parseFloat(tick.Low),
-		Close:     parseFloat(tick.Close),
-		CloseTime: time.Unix(tick.EndTime/1000, 0),
-		IsNew:     true,
-	}
-}
-
-func kConvertKline(tick *futures.Kline) core.Kline {
-	return core.Kline{
-		StartTime: time.Unix(tick.OpenTime/1000, 0),
-		Open:      parseFloat(tick.Open),
-		High:      parseFloat(tick.High),
-		Low:       parseFloat(tick.Low),
-		Close:     parseFloat(tick.Close),
-		CloseTime: time.Unix(tick.CloseTime/1000, 0),
-		IsNew:     false,
-	}
-}

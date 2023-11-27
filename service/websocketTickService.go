@@ -2,8 +2,8 @@
 package service
 
 import (
+	"crypto-trading-bot-go/core"
 	"fmt"
-	"strconv"
 
 	"github.com/adshao/go-binance/v2/futures"
 )
@@ -44,15 +44,9 @@ func newKlineHandler(event *futures.WsKlineEvent) {
 		return
 	}
 	if currentTick.StartTime != lastTick.StartTime {
-		newKline := fConvertToKline(lastTick)
+		newKline := core.ConvertToKlineFromWsKline(lastTick)
 
 		Logger.Info(fmt.Sprintf("%+v", newKline))
 		recordNewKline(&newKline)
 	}
-}
-
-func parseFloat(str string) float64 {
-	result, _ := strconv.ParseFloat(str, 10)
-
-	return result
 }
