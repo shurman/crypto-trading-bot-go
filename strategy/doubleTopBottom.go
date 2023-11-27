@@ -14,6 +14,8 @@ var (
 	localHigh = 0.0
 	localLow  = 9999999.99
 
+	singleLoss = 30.0
+
 	k1 *core.Kline
 	k2 *core.Kline
 	k3 *core.Kline
@@ -71,7 +73,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				"L1",
 				core.ORDER_LONG,
-				1,
+				singleLoss/(k1.High-k1.Low),
 				k1.High,
 				k1.High+(k1.High-k1.Low),
 				k1.Low,
@@ -92,7 +94,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				"L1",
 				core.ORDER_LONG,
-				1,
+				singleLoss/(k1.High-k1.Low),
 				k1.High,
 				k1.High+(k1.High-k1.Low),
 				k1.Low,
@@ -112,7 +114,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				"L2",
 				core.ORDER_LONG,
-				1,
+				singleLoss/(k1.High-k1.Low),
 				k1.High,
 				k1.High+(k1.High-k1.Low),
 				k1.Low,
@@ -129,7 +131,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				"L2",
 				core.ORDER_LONG,
-				1,
+				singleLoss/(k1.High-k1.Low),
 				k1.High,
 				k1.High+(k1.High-k1.Low),
 				k1.Low,

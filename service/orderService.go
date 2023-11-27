@@ -73,7 +73,46 @@ func CreateOrder(
 	if sendNotify {
 		//send slack
 	}
+}
 
+func CreateMarketOrder(strategyBO *core.StrategyBO,
+	_id string,
+	dir core.OrderDirection,
+	quantity float64,
+	stopProfit float64,
+	stopLoss float64,
+	sendNotify bool,
+) {
+	newOrder := core.ConstructOrderBO(
+		currentKline.CloseTime,
+		strategyBO.ToStandardId(_id),
+		core.ORDER_OPEN,
+		dir,
+		quantity,
+		currentKline.Close,
+		stopProfit,
+		stopLoss,
+	)
+
+	if !orderPut(newOrder.GetId(), newOrder) {
+		slog.Warn("Order " + newOrder.GetId() + " not created")
+		return
+	}
+
+	newOrder.Fill(currentKline.CloseTime)
+
+	slog.Info(fmt.Sprintf("[%s][%s] entry %s %f@%f P:%f L:%f",
+		currentKline.CloseTime,
+		strategyBO.ToStandardId(_id),
+		dir.ToString(),
+		quantity,
+		currentKline.Close,
+		stopProfit,
+		stopLoss))
+
+	if sendNotify {
+		//send slack
+	}
 }
 
 func ExitOrder(
