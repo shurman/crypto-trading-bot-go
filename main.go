@@ -8,15 +8,14 @@ import (
 
 //TODO
 //record and output filling position
-//position size for same risk
 
 //Download history kline and load
 //verify performance
 
 func main() {
+	//service.DownloadRawHistoryKline(service.Config.Trading.Symbol, service.Config.Trading.Interval, 1600000000000, 1500)
 	service.InitStrategyService()
 
-	service.FutureClientInit()
 	service.LoadHistoryKline()
 	go service.InitWsTickService()
 
