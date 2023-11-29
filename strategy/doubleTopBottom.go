@@ -24,7 +24,7 @@ var (
 )
 
 func init() {
-	service.RegisterStrategyFunc(DoubleTopBottom)
+	service.RegisterStrategyFunc(DoubleTopBottom, "DoubleTopBottom")
 }
 
 func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
@@ -147,7 +147,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 }
 
 func genOrderId() string {
-	return fmt.Sprintf("L%d", orderId)
+	return fmt.Sprintf("%04d", orderId)
 }
 
 func reset() {
