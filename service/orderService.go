@@ -4,6 +4,9 @@ import (
 	"crypto-trading-bot-go/core"
 	"fmt"
 	"log/slog"
+	"os"
+	"sort"
+	"time"
 )
 
 var (
@@ -24,10 +27,10 @@ func CheckOrderFilled() {
 			}
 		} else if v.GetStatus() == core.ORDER_ENTRY {
 			if v.GetStopProfitPrice() <= currentKline.High && v.GetStopProfitPrice() >= currentKline.Low {
-				v.Exit(v.GetStopProfitPrice())
+				v.Exit(v.GetStopProfitPrice(), currentKline.CloseTime)
 				slog.Info(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
 			} else if v.GetStopLossPrice() <= currentKline.High && v.GetStopLossPrice() >= currentKline.Low {
-				v.Exit(v.GetStopLossPrice())
+				v.Exit(v.GetStopLossPrice(), currentKline.CloseTime)
 				slog.Info(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
 			}
 		}
@@ -124,7 +127,7 @@ func ExitOrder(
 		return
 	}
 
-	order.Exit(currentKline.Close)
+	order.Exit(currentKline.Close, currentKline.CloseTime)
 }
 
 func CancelOrder(
@@ -170,4 +173,18 @@ func orderPut(id string, newOrder *core.OrderBO) bool {
 
 	orderMap[id] = newOrder
 	return true
+}
+
+func OutputOrdersResult() {
+	f, _ := os.OpenFile(time.Now().Format("20060102150405")+"_report.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+	var orderKeys []string
+	for k := range orderMap {
+		orderKeys = append(orderKeys, k)
+	}
+	sort.Strings(orderKeys)
+
+	for _, k := range orderKeys {
+		f.Write([]byte(fmt.Sprintf("%s\n", orderMap[k].ToCsv())))
+	}
 }

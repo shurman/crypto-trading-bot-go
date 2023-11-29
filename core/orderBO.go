@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -14,6 +15,7 @@ type OrderBO struct {
 	stopProfit  float64
 	stopLoss    float64
 	fillTime    time.Time
+	exitTime    time.Time
 	finalProfit float64
 }
 
@@ -64,13 +66,25 @@ func (bo *OrderBO) Fill(_time time.Time) {
 	bo.fillTime = _time
 }
 
-func (bo *OrderBO) Exit(_price float64) {
+func (bo *OrderBO) Exit(_price float64, _time time.Time) {
 	bo.status = ORDER_EXIT
+	bo.exitTime = _time
 	bo.finalProfit = (_price - bo.entry) * bo.quantity * float64(bo.dir)
 }
 
 func (bo *OrderBO) Cancel() {
 	bo.status = ORDER_CANCEL
+}
+
+func (bo *OrderBO) ToCsv() string {
+	return fmt.Sprintf("%s,%s,%s,%f,%f,%s,%f",
+		bo.fillTime,
+		bo.id,
+		bo.dir.ToString(),
+		bo.entry,
+		bo.quantity,
+		bo.exitTime,
+		bo.finalProfit)
 }
 
 type OrderStatus string

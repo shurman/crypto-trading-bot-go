@@ -27,4 +27,5 @@ func onlineMode() {
 func localMode() {
 	//service.DownloadRawHistoryKline(service.Config.Trading.Symbol, service.Config.Trading.Interval, 1500000000000, 1500)
 	service.LoadRawHistoryKline(service.Config.Trading.Symbol, service.Config.Trading.Interval)
+	service.OutputOrdersResult()
 }
