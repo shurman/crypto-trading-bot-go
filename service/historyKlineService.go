@@ -44,7 +44,7 @@ func LoadHistoryKline() {
 }
 
 func DownloadRawHistoryKline(symbol string, interval string, startTime int64, limit int64) {
-	f, _ := os.Create(symbol + "_" + interval + ".txt")
+	f, _ := os.OpenFile(symbol+"_"+interval+".txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	defer f.Close()
 
 	for {

@@ -13,18 +13,18 @@ import (
 
 func main() {
 	service.InitStrategyService()
+
 	//onlineMode()
 	localMode()
-
-	select {}
 }
 
 func onlineMode() {
 	service.LoadHistoryKline()
 	go service.InitWsTickService()
+	select {}
 }
 
 func localMode() {
-	// service.DownloadRawHistoryKline(service.Config.Trading.Symbol, service.Config.Trading.Interval, 1600000000000, 1500)
+	//service.DownloadRawHistoryKline(service.Config.Trading.Symbol, service.Config.Trading.Interval, 1500000000000, 1500)
 	service.LoadRawHistoryKline(service.Config.Trading.Symbol, service.Config.Trading.Interval)
 }
