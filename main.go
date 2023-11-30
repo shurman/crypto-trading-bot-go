@@ -7,8 +7,8 @@ import (
 )
 
 //TODO
+//DTB reset after long waiting / state 1,-1 rule rework / phase 2
 //quantity based on Compound Interest
-//DTB short
 //multiple coins
 
 func main() {

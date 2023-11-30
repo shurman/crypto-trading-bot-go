@@ -5,14 +5,15 @@ import (
 	"crypto-trading-bot-go/core"
 	"crypto-trading-bot-go/service"
 	"fmt"
-	// "log/slog"
+	"log/slog"
 )
 
 var (
-	state     = 0
-	borderLow = 0.0
-	localHigh = 0.0
-	localLow  = 9999999.99
+	state      = 0
+	borderLow  = 0.0
+	borderHigh = 0.0
+	localHigh  = 0.0
+	localLow   = 9999999.99
 
 	singleLoss = 30.0
 
@@ -36,7 +37,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		return
 	}
 
-	//slog.Info(fmt.Sprintf("[doubleTopBottom] state=%d %s", state, k1.ToString()))
+	slog.Info(fmt.Sprintf("[doubleTopBottom] state=%d %s", state, k1.ToString()))
 
 	if state == 0 {
 		if k1.High > k2.High && k2.High > k3.High && k1.High/k3.High > 1.01 {
@@ -44,6 +45,11 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			state = 1
 			localHigh = k1.High
 			borderLow = k3.Low
+		} else if k1.Low < k2.Low && k2.Low < k3.Low && k1.Low/k3.Low < 0.99 {
+
+			state = -1
+			localLow = k1.Low
+			borderHigh = k3.High
 		}
 
 	} else if state == 1 {
@@ -141,9 +147,65 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				k1.IsNew,
 			)
 		}
+	} else if state == -1 {
+		if k1.Low < localLow {
+			localHigh = 0
+			localLow = k1.Low
+
+		} else if k1.High > localHigh {
+			localHigh = k1.High
+
+		} else if k1.High < localHigh-(localHigh-localLow)*0.15 {
+			state = -2
+		}
+
+	} else if state == -2 {
+		if k1.High > localHigh {
+			state = -3
+
+		} else if k1.High > localHigh+(localHigh-localLow)*0.4 {
+			reset()
+
+		} else if k1.Low < localLow-(localHigh-localLow)*0.4 {
+			reset()
+		}
+
+	} else if state == -3 {
+		if k1.Low < k2.Low {
+			service.CreateOrder(
+				bo,
+				genOrderId(),
+				core.ORDER_SHORT,
+				singleLoss/(k1.High-k1.Low),
+				k1.Low,
+				k1.Low-(k1.High-k1.Low),
+				k1.High,
+				k1.IsNew,
+			)
+			state = -4
+		}
+
+	} else if state == -4 {
+		if service.GetOrderStatus(bo, genOrderId()) == core.ORDER_ENTRY { // means filled
+			//state = -5
+			orderId++
+			reset()
+		} else {
+			service.CreateOrder(
+				bo,
+				genOrderId(),
+				core.ORDER_LONG,
+				singleLoss/(k1.High-k1.Low),
+				k1.Low,
+				k1.Low-(k1.High-k1.Low),
+				k1.High,
+				k1.IsNew,
+			)
+		}
+
 	}
 
-	//slog.Info(fmt.Sprintf("================= state=%d  localHigh=%f localLow=%f", state, localHigh, localLow))
+	slog.Info(fmt.Sprintf("================= state=%d  localHigh=%f localLow=%f", state, localHigh, localLow))
 }
 
 func genOrderId() string {
