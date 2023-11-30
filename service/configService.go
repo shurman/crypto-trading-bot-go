@@ -21,9 +21,26 @@ type SystemConfigs struct {
 }
 
 type TradingConfigs struct {
-	Symbol       string `mapstructure:"symbol"`
-	Interval     string `mapstructure:"interval"`
-	HistoryLimit int    `mapstructure:"historylimit"`
+	Symbol   string `mapstructure:"symbol"`
+	Interval string `mapstructure:"interval"`
+	Mode     string `mapstructure:"mode"`
+
+	Indicator   IndicatorConfigs   `mapstructure:"indicator"`
+	Backtesting BacktestingConfigs `mapstructure:"backtesting"`
+}
+
+type IndicatorConfigs struct {
+	StartFromKlines int `mapstructure:"startFromKlines"`
+}
+
+type BacktestingConfigs struct {
+	Download BacktestingDownloadConfigs `mapstructure:"download"`
+}
+
+type BacktestingDownloadConfigs struct {
+	Enable           bool  `mapstructure:"enable"`
+	StartTime        int64 `mapstructure:"startTime"`
+	LimitPerDownload int64 `mapstructure:"limitPerDownload"`
 }
 
 type BinanceConfigs struct {

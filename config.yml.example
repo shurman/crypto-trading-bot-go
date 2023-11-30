@@ -4,7 +4,15 @@ system:
 trading:
   symbol: ETHUSDT
   interval: 15m
-  historylimit: 10
+
+  mode: backtesting
+  indicator:
+    startFromKlines: 50
+  backtesting:
+    download:
+      enable: false
+      startTime: 1500000000000
+      limitPerDownload: 1500
 
 binance:
   apikey: xxx

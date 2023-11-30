@@ -7,25 +7,34 @@ import (
 )
 
 //TODO
-//record and output filling position
-
-//verify performance
+//quantity based on Compound Interest
+//DTB short
+//multiple coins
 
 func main() {
 	service.InitStrategyService()
 
-	//onlineMode()
-	localMode()
+	if service.Config.Trading.Mode == "indicator" {
+		indicatorMode()
+	} else {
+		backtestingMode()
+	}
 }
 
-func onlineMode() {
+func indicatorMode() {
 	service.LoadHistoryKline()
 	go service.InitWsTickService()
 	select {}
 }
 
-func localMode() {
-	//service.DownloadRawHistoryKline(service.Config.Trading.Symbol, service.Config.Trading.Interval, 1500000000000, 1500)
+func backtestingMode() {
+	if service.Config.Trading.Backtesting.Download.Enable {
+		service.DownloadRawHistoryKline(
+			service.Config.Trading.Symbol,
+			service.Config.Trading.Interval,
+			service.Config.Trading.Backtesting.Download.StartTime,
+			service.Config.Trading.Backtesting.Download.LimitPerDownload)
+	}
 	service.LoadRawHistoryKline(service.Config.Trading.Symbol, service.Config.Trading.Interval)
 	service.OutputOrdersResult()
 }

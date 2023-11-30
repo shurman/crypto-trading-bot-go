@@ -176,7 +176,7 @@ func orderPut(id string, newOrder *core.OrderBO) bool {
 }
 
 func OutputOrdersResult() {
-	f, _ := os.OpenFile(time.Now().Format("20060102150405")+"_report.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, _ := os.OpenFile(time.Now().Format("20060102150405")+"_report.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	var orderKeys []string
 	for k := range orderMap {

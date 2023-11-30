@@ -29,7 +29,7 @@ func init() {
 func LoadHistoryKline() {
 	historyKlines, _ := futuresClient.NewKlinesService().
 		Symbol(Config.Trading.Symbol).
-		Limit(Config.Trading.HistoryLimit + 1).
+		Limit(Config.Trading.Indicator.StartFromKlines + 1).
 		Interval(Config.Trading.Interval).
 		Do(context.Background())
 
