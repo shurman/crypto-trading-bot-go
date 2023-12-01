@@ -78,7 +78,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_LONG,
-				service.CurrentFund*core.Config.Trading.SingleRiskRatio/(k1.High-k1.Low),
+				getQuantity(k1),
 				k1.High,
 				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.Low,
@@ -100,7 +100,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_LONG,
-				service.CurrentFund*core.Config.Trading.SingleRiskRatio/(k1.High-k1.Low),
+				getQuantity(k1),
 				k1.High,
 				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.Low,
@@ -120,7 +120,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_LONG,
-				service.CurrentFund*core.Config.Trading.SingleRiskRatio/(k1.High-k1.Low),
+				getQuantity(k1),
 				k1.High,
 				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.Low,
@@ -137,7 +137,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_LONG,
-				service.CurrentFund*core.Config.Trading.SingleRiskRatio/(k1.High-k1.Low),
+				getQuantity(k1),
 				k1.High,
 				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.Low,
@@ -173,7 +173,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_SHORT,
-				service.CurrentFund*core.Config.Trading.SingleRiskRatio/(k1.High-k1.Low),
+				getQuantity(k1),
 				k1.Low,
 				k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.High,
@@ -192,7 +192,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_LONG,
-				service.CurrentFund*core.Config.Trading.SingleRiskRatio/(k1.High-k1.Low),
+				getQuantity(k1),
 				k1.Low,
 				k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.High,
@@ -207,6 +207,14 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 
 func genOrderId() string {
 	return fmt.Sprintf("%04d", orderId)
+}
+
+func getQuantity(kline *core.Kline) float64 {
+	if core.Config.Trading.EnableAccumulated {
+		return service.CurrentFund * core.Config.Trading.SingleRiskRatio / (k1.High - k1.Low)
+	} else {
+		return core.Config.Trading.InitialFund * core.Config.Trading.SingleRiskRatio / (k1.High - k1.Low)
+	}
 }
 
 func reset() {

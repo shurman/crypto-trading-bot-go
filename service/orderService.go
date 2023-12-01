@@ -211,15 +211,12 @@ func PrintOrderResult() {
 	}
 
 	slog.Warn("\tLong\t\tShort")
-	slog.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d",
-		winLong,
-		winLong+lossLong,
-		winShort,
-		winShort+lossShort))
+	slog.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d", winLong, winLong+lossLong, winShort, winShort+lossShort))
 	slog.Warn(fmt.Sprintf("Ratio\t=%3.3f%%\t=%3.3f%%",
 		float32(winLong)/float32(winLong+lossLong)*100,
 		float32(winShort)/float32(winShort+lossShort)*100))
 	slog.Warn(fmt.Sprintf("Profit\t$%5.3f\t$%5.3f", profitLong, profitShort))
+	slog.Warn(fmt.Sprintf("Fund\t$%5.3f -> $%5.3f", core.Config.Trading.InitialFund, CurrentFund))
 }
 
 func ExportOrdersResult() {
