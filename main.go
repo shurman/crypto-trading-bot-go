@@ -8,6 +8,7 @@ import (
 )
 
 //TODO
+//compound switch config
 //try 1h
 //multiple coins
 //DTB reset after long waiting / state 1,-1 rule rework / phase 2

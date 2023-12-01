@@ -61,15 +61,48 @@ func DownloadRawHistoryKline(symbol string, interval string, startTime int64, li
 			panic(err)
 		}
 
-		bodyStr := string(body)
-		bodyStr = strings.ReplaceAll(bodyStr[1:len(bodyStr)-1], "],[", "],\n[")
-		if bodyStr == "" {
-			break
-		}
-		f.Write([]byte(bodyStr + ",\n"))
+		json := loadJson(body)
 
-		time.Sleep(5 * time.Second)
-		startTime = time.Unix(startTime/1000, 0).Add(time.Minute * time.Duration(15*limit)).UnixMilli()
+		count := len(json.MustArray())
+		if count <= 1 {
+			break
+		} else if count < 1500 {
+			count -= 1
+		}
+
+		for i := 0; i < count; i++ {
+			item := json.GetIndex(i)
+
+			if len(item.MustArray()) < 11 {
+				panic("Raw Kline format error")
+			}
+
+			kline := &futures.Kline{
+				OpenTime:                 item.GetIndex(0).MustInt64(),
+				Open:                     item.GetIndex(1).MustString(),
+				High:                     item.GetIndex(2).MustString(),
+				Low:                      item.GetIndex(3).MustString(),
+				Close:                    item.GetIndex(4).MustString(),
+				Volume:                   item.GetIndex(5).MustString(),
+				CloseTime:                item.GetIndex(6).MustInt64(),
+				QuoteAssetVolume:         item.GetIndex(7).MustString(),
+				TradeNum:                 item.GetIndex(8).MustInt64(),
+				TakerBuyBaseAssetVolume:  item.GetIndex(9).MustString(),
+				TakerBuyQuoteAssetVolume: item.GetIndex(10).MustString(),
+			}
+
+			f.Write([]byte(fmt.Sprintf("[%d,%s,%s,%s,%s,%d],\n",
+				kline.OpenTime,
+				kline.Open,
+				kline.High,
+				kline.Low,
+				kline.Close,
+				kline.CloseTime)))
+
+			startTime = kline.CloseTime
+		}
+
+		time.Sleep(1 * time.Second)
 	}
 }
 
@@ -81,36 +114,36 @@ func LoadRawHistoryKline(symbol string, interval string) {
 	}
 
 	rawKlines := "[" + strings.ReplaceAll(string(data), "\n", "") + "[]]"
+	json := loadJson([]byte(rawKlines))
 
-	json, err := simplejson.NewJson([]byte(rawKlines))
+	count := len(json.MustArray()) - 1
+
+	for i := 0; i < count; i++ {
+		item := json.GetIndex(i)
+
+		if len(item.MustArray()) < 6 {
+			panic("Kline format error")
+		}
+
+		kline := &core.Kline{
+			StartTime: time.Unix(item.GetIndex(0).MustInt64()/1000, 0),
+			Open:      item.GetIndex(1).MustFloat64(),
+			High:      item.GetIndex(2).MustFloat64(),
+			Low:       item.GetIndex(3).MustFloat64(),
+			Close:     item.GetIndex(4).MustFloat64(),
+			CloseTime: time.Unix(item.GetIndex(5).MustInt64()/1000, 0),
+		}
+
+		recordNewKline(kline)
+	}
+}
+
+func loadJson(rawData []byte) *simplejson.Json {
+	json, err := simplejson.NewJson(rawData)
 
 	if err != nil {
 		panic(err)
 	}
 
-	num := len(json.MustArray()) - 1
-
-	for i := 0; i < num; i++ {
-		item := json.GetIndex(i)
-
-		if len(item.MustArray()) < 11 {
-			panic("Kline format error")
-		}
-
-		kline := core.ConvertKlineFromFuturesKline(&futures.Kline{
-			OpenTime:                 item.GetIndex(0).MustInt64(),
-			Open:                     item.GetIndex(1).MustString(),
-			High:                     item.GetIndex(2).MustString(),
-			Low:                      item.GetIndex(3).MustString(),
-			Close:                    item.GetIndex(4).MustString(),
-			Volume:                   item.GetIndex(5).MustString(),
-			CloseTime:                item.GetIndex(6).MustInt64(),
-			QuoteAssetVolume:         item.GetIndex(7).MustString(),
-			TradeNum:                 item.GetIndex(8).MustInt64(),
-			TakerBuyBaseAssetVolume:  item.GetIndex(9).MustString(),
-			TakerBuyQuoteAssetVolume: item.GetIndex(10).MustString(),
-		})
-
-		recordNewKline(&kline)
-	}
+	return json
 }
