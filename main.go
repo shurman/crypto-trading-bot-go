@@ -8,8 +8,6 @@ import (
 )
 
 //TODO
-//quantity based on Compound Interest
-//print order result after backtesting
 //try 1h
 //multiple coins
 //DTB reset after long waiting / state 1,-1 rule rework / phase 2
@@ -40,7 +38,8 @@ func backtestingMode() {
 	}
 	service.LoadRawHistoryKline(core.Config.Trading.Symbol, core.Config.Trading.Interval)
 
+	service.PrintOrderResult()
 	if core.Config.Trading.Backtesting.ExportCsv {
-		service.OutputOrdersResult()
+		service.ExportOrdersResult()
 	}
 }

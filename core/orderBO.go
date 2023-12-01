@@ -57,6 +57,10 @@ func (bo *OrderBO) GetStopProfitPrice() float64 {
 	return bo.stopProfit
 }
 
+func (bo *OrderBO) GetDirection() OrderDirection {
+	return bo.dir
+}
+
 func (bo *OrderBO) GetStopLossPrice() float64 {
 	return bo.stopLoss
 }

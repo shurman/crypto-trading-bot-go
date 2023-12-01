@@ -180,7 +180,49 @@ func orderPut(id string, newOrder *core.OrderBO) bool {
 	return true
 }
 
-func OutputOrdersResult() {
+func PrintOrderResult() {
+	countLong := 0
+	countShort := 0
+	winLong := 0
+	lossLong := 0
+	winShort := 0
+	lossShort := 0
+	profitLong := 0.0
+	profitShort := 0.0
+
+	for _, v := range orderMap {
+		if v.GetDirection() == core.ORDER_LONG {
+			countLong++
+			if v.GetFinalProfit() > 0 {
+				winLong++
+			} else {
+				lossLong++
+			}
+			profitLong += v.GetFinalProfit()
+		} else if v.GetDirection() == core.ORDER_SHORT {
+			countShort++
+			if v.GetFinalProfit() > 0 {
+				winShort++
+			} else {
+				lossShort++
+			}
+			profitShort += v.GetFinalProfit()
+		}
+	}
+
+	slog.Warn("\tLong\t\tShort")
+	slog.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d",
+		winLong,
+		winLong+lossLong,
+		winShort,
+		winShort+lossShort))
+	slog.Warn(fmt.Sprintf("Ratio\t=%3.3f%%\t=%3.3f%%",
+		float32(winLong)/float32(winLong+lossLong)*100,
+		float32(winShort)/float32(winShort+lossShort)*100))
+	slog.Warn(fmt.Sprintf("Profit\t$%5.3f\t$%5.3f", profitLong, profitShort))
+}
+
+func ExportOrdersResult() {
 	f, _ := os.OpenFile(time.Now().Format("20060102150405")+"_"+core.Config.Trading.Symbol+"_report.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	var orderKeys []string
