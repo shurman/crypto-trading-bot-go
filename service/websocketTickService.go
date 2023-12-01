@@ -20,8 +20,8 @@ func InitWsTickService() {
 	}
 
 	doneC, _, err := futures.WsKlineServe( //WsCombinedKlineServe for multiple
-		Config.Trading.Symbol,
-		Config.Trading.Interval,
+		core.Config.Trading.Symbol,
+		core.Config.Trading.Interval,
 		wsKlineHandler,
 		errHandler,
 	)

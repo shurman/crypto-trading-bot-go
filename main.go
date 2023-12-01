@@ -2,19 +2,22 @@
 package main
 
 import (
+	"crypto-trading-bot-go/core"
 	"crypto-trading-bot-go/service"
 	_ "crypto-trading-bot-go/strategy"
 )
 
 //TODO
-//DTB reset after long waiting / state 1,-1 rule rework / phase 2
 //quantity based on Compound Interest
+//print order result after backtesting
+//try 1h
 //multiple coins
+//DTB reset after long waiting / state 1,-1 rule rework / phase 2
 
 func main() {
 	service.InitStrategyService()
 
-	if service.Config.Trading.Mode == "indicator" {
+	if core.Config.Trading.Mode == "indicator" {
 		indicatorMode()
 	} else {
 		backtestingMode()
@@ -28,13 +31,16 @@ func indicatorMode() {
 }
 
 func backtestingMode() {
-	if service.Config.Trading.Backtesting.Download.Enable {
+	if core.Config.Trading.Backtesting.Download.Enable {
 		service.DownloadRawHistoryKline(
-			service.Config.Trading.Symbol,
-			service.Config.Trading.Interval,
-			service.Config.Trading.Backtesting.Download.StartTime,
-			service.Config.Trading.Backtesting.Download.LimitPerDownload)
+			core.Config.Trading.Symbol,
+			core.Config.Trading.Interval,
+			core.Config.Trading.Backtesting.Download.StartTime,
+			core.Config.Trading.Backtesting.Download.LimitPerDownload)
 	}
-	service.LoadRawHistoryKline(service.Config.Trading.Symbol, service.Config.Trading.Interval)
-	service.OutputOrdersResult()
+	service.LoadRawHistoryKline(core.Config.Trading.Symbol, core.Config.Trading.Interval)
+
+	if core.Config.Trading.Backtesting.ExportCsv {
+		service.OutputOrdersResult()
+	}
 }

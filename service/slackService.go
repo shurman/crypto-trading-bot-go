@@ -3,15 +3,16 @@ package service
 
 import (
 	"bytes"
+	"crypto-trading-bot-go/core"
 	"fmt"
 	"io"
 	"net/http"
 )
 
 func SendSlack(message string) {
-	jsonData := []byte("{'channel': '" + Config.Slack.Channel + "', 'text': '" + message + "'}")
+	jsonData := []byte("{'channel': '" + core.Config.Slack.Channel + "', 'text': '" + message + "'}")
 
-	response, error := http.Post(Config.Slack.Webhook, "application/json", bytes.NewBuffer(jsonData))
+	response, error := http.Post(core.Config.Slack.Webhook, "application/json", bytes.NewBuffer(jsonData))
 	if error != nil {
 		panic(error)
 	}

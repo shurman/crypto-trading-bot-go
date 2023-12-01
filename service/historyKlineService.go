@@ -23,14 +23,14 @@ var (
 )
 
 func init() {
-	futuresClient = binance.NewFuturesClient(Config.Binance.Apikey, Config.Binance.Apisecret)
+	futuresClient = binance.NewFuturesClient(core.Config.Binance.Apikey, core.Config.Binance.Apisecret)
 }
 
 func LoadHistoryKline() {
 	historyKlines, _ := futuresClient.NewKlinesService().
-		Symbol(Config.Trading.Symbol).
-		Limit(max(min(Config.Trading.Indicator.StartFromKlines+1, 1500), 1)).
-		Interval(Config.Trading.Interval).
+		Symbol(core.Config.Trading.Symbol).
+		Limit(max(min(core.Config.Trading.Indicator.StartFromKlines+1, 1500), 1)).
+		Interval(core.Config.Trading.Interval).
 		Do(context.Background())
 
 	for _, fKline := range historyKlines[:len(historyKlines)-1] { //remove last one because of not closed

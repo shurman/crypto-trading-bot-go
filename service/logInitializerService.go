@@ -12,7 +12,7 @@ var (
 
 func init() {
 	level := new(slog.Level)
-	err := level.UnmarshalText([]byte(Config.System.Loglevel))
+	err := level.UnmarshalText([]byte(core.Config.System.Loglevel))
 
 	if err != nil {
 		panic(err)

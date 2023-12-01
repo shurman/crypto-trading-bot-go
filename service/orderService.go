@@ -12,6 +12,8 @@ import (
 var (
 	orderMap     = make(map[string]*core.OrderBO)
 	currentKline *core.Kline
+
+	CurrentFund = core.Config.Trading.InitialFund
 )
 
 func SetCurrentKline(k *core.Kline) {
@@ -28,9 +30,11 @@ func CheckOrderFilled() {
 		} else if v.GetStatus() == core.ORDER_ENTRY {
 			if v.GetStopProfitPrice() <= currentKline.High && v.GetStopProfitPrice() >= currentKline.Low {
 				v.Exit(v.GetStopProfitPrice(), currentKline.CloseTime)
+				CurrentFund += v.GetFinalProfit()
 				slog.Info(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
 			} else if v.GetStopLossPrice() <= currentKline.High && v.GetStopLossPrice() >= currentKline.Low {
 				v.Exit(v.GetStopLossPrice(), currentKline.CloseTime)
+				CurrentFund += v.GetFinalProfit()
 				slog.Info(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
 			}
 		}
@@ -128,6 +132,7 @@ func ExitOrder(
 	}
 
 	order.Exit(currentKline.Close, currentKline.CloseTime)
+	CurrentFund -= order.GetFinalProfit()
 }
 
 func CancelOrder(
@@ -176,7 +181,7 @@ func orderPut(id string, newOrder *core.OrderBO) bool {
 }
 
 func OutputOrdersResult() {
-	f, _ := os.OpenFile(time.Now().Format("20060102150405")+"_"+Config.Trading.Symbol+"_report.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, _ := os.OpenFile(time.Now().Format("20060102150405")+"_"+core.Config.Trading.Symbol+"_report.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	var orderKeys []string
 	for k := range orderMap {

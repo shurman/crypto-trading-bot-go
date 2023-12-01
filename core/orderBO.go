@@ -61,6 +61,10 @@ func (bo *OrderBO) GetStopLossPrice() float64 {
 	return bo.stopLoss
 }
 
+func (bo *OrderBO) GetFinalProfit() float64 {
+	return bo.finalProfit
+}
+
 func (bo *OrderBO) Fill(_time time.Time) {
 	bo.status = ORDER_ENTRY
 	bo.fillTime = _time

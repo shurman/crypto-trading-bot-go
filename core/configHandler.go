@@ -1,5 +1,4 @@
-// configService.go
-package service
+package core
 
 import (
 	"github.com/spf13/viper"
@@ -21,9 +20,12 @@ type SystemConfigs struct {
 }
 
 type TradingConfigs struct {
-	Symbol   string `mapstructure:"symbol"`
-	Interval string `mapstructure:"interval"`
-	Mode     string `mapstructure:"mode"`
+	Symbol          string  `mapstructure:"symbol"`
+	Interval        string  `mapstructure:"interval"`
+	InitialFund     float64 `mapstructure:"initialFund"`
+	SingleRiskRatio float64 `mapstructure:"singleRiskRatio"`
+	ProfitLossRatio float64 `mapstructure:"ProfitLossRatio"`
+	Mode            string  `mapstructure:"mode"`
 
 	Indicator   IndicatorConfigs   `mapstructure:"indicator"`
 	Backtesting BacktestingConfigs `mapstructure:"backtesting"`
@@ -34,7 +36,8 @@ type IndicatorConfigs struct {
 }
 
 type BacktestingConfigs struct {
-	Download BacktestingDownloadConfigs `mapstructure:"download"`
+	ExportCsv bool                       `mapstructure:"exportCsv"`
+	Download  BacktestingDownloadConfigs `mapstructure:"download"`
 }
 
 type BacktestingDownloadConfigs struct {

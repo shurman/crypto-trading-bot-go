@@ -5,7 +5,6 @@ import (
 	"crypto-trading-bot-go/core"
 	"crypto-trading-bot-go/service"
 	"fmt"
-	"log/slog"
 )
 
 var (
@@ -14,8 +13,6 @@ var (
 	borderHigh = 0.0
 	localHigh  = 0.0
 	localLow   = 9999999.99
-
-	singleLoss = 30.0
 
 	orderId = 1
 
@@ -37,7 +34,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		return
 	}
 
-	slog.Info(fmt.Sprintf("[doubleTopBottom] state=%d %s", state, k1.ToString()))
+	//slog.Info(fmt.Sprintf("[doubleTopBottom] state=%d %s", state, k1.ToString()))
 
 	if state == 0 {
 		if k1.High > k2.High && k2.High > k3.High && k1.High/k3.High > 1.01 {
@@ -81,9 +78,9 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_LONG,
-				singleLoss/(k1.High-k1.Low),
+				service.CurrentFund*core.Config.Trading.SingleRiskRatio/(k1.High-k1.Low),
 				k1.High,
-				k1.High+(k1.High-k1.Low),
+				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.Low,
 				k1.IsNew,
 			)
@@ -103,9 +100,9 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_LONG,
-				singleLoss/(k1.High-k1.Low),
+				service.CurrentFund*core.Config.Trading.SingleRiskRatio/(k1.High-k1.Low),
 				k1.High,
-				k1.High+(k1.High-k1.Low),
+				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.Low,
 				k1.IsNew,
 			)
@@ -123,9 +120,9 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_LONG,
-				singleLoss/(k1.High-k1.Low),
+				service.CurrentFund*core.Config.Trading.SingleRiskRatio/(k1.High-k1.Low),
 				k1.High,
-				k1.High+(k1.High-k1.Low),
+				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.Low,
 				k1.IsNew,
 			)
@@ -140,9 +137,9 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_LONG,
-				singleLoss/(k1.High-k1.Low),
+				service.CurrentFund*core.Config.Trading.SingleRiskRatio/(k1.High-k1.Low),
 				k1.High,
-				k1.High+(k1.High-k1.Low),
+				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.Low,
 				k1.IsNew,
 			)
@@ -176,9 +173,9 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_SHORT,
-				singleLoss/(k1.High-k1.Low),
+				service.CurrentFund*core.Config.Trading.SingleRiskRatio/(k1.High-k1.Low),
 				k1.Low,
-				k1.Low-(k1.High-k1.Low),
+				k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.High,
 				k1.IsNew,
 			)
@@ -195,9 +192,9 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_LONG,
-				singleLoss/(k1.High-k1.Low),
+				service.CurrentFund*core.Config.Trading.SingleRiskRatio/(k1.High-k1.Low),
 				k1.Low,
-				k1.Low-(k1.High-k1.Low),
+				k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.High,
 				k1.IsNew,
 			)
@@ -205,7 +202,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 
 	}
 
-	slog.Info(fmt.Sprintf("================= state=%d  localHigh=%f localLow=%f", state, localHigh, localLow))
+	//slog.Info(fmt.Sprintf("================= state=%d  CurrentFund=%f localHigh=%f localLow=%f", state, service.CurrentFund, localHigh, localLow))
 }
 
 func genOrderId() string {

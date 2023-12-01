@@ -5,10 +5,15 @@ trading:
   symbol: ETHUSDT
   interval: 15m
 
+  initialFund: 10000
+  singleRiskRatio: 0.04
+  profitLossRatio: 1
+
   mode: backtesting
   indicator:
     startFromKlines: 50
   backtesting:
+    exportCsv: true
     download:
       enable: false
       startTime: 1500000000000
