@@ -10,32 +10,34 @@ import (
 )
 
 var (
-	orderMap     = make(map[string]*core.OrderBO)
-	currentKline *core.Kline
+	ordersMap    = make(map[string](map[string]*core.OrderBO))
+	currentKline = make(map[string]*core.Kline)
 
 	CurrentFund = core.Config.Trading.InitialFund
 )
 
-func SetCurrentKline(k *core.Kline) {
-	currentKline = k
+func SetCurrentKline(symbol string, k *core.Kline) {
+	currentKline[symbol] = k
 }
 
 func CheckOrderFilled() {
-	for _, v := range orderMap {
-		if v.GetStatus() == core.ORDER_OPEN {
-			if v.GetEntryPrice() <= currentKline.High && v.GetEntryPrice() >= currentKline.Low {
-				v.Fill(currentKline.CloseTime)
-				slog.Info(fmt.Sprintf("[%s] filled  %+v", v.GetId(), v))
-			}
-		} else if v.GetStatus() == core.ORDER_ENTRY {
-			if v.GetStopProfitPrice() <= currentKline.High && v.GetStopProfitPrice() >= currentKline.Low {
-				v.Exit(v.GetStopProfitPrice(), currentKline.CloseTime)
-				CurrentFund += v.GetFinalProfit()
-				slog.Info(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
-			} else if v.GetStopLossPrice() <= currentKline.High && v.GetStopLossPrice() >= currentKline.Low {
-				v.Exit(v.GetStopLossPrice(), currentKline.CloseTime)
-				CurrentFund += v.GetFinalProfit()
-				slog.Info(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
+	for _, symbol := range core.Config.Trading.Symbols {
+		for _, v := range ordersMap[symbol] {
+			if v.GetStatus() == core.ORDER_OPEN {
+				if v.GetEntryPrice() <= currentKline[symbol].High && v.GetEntryPrice() >= currentKline[symbol].Low {
+					v.Fill(currentKline[symbol].CloseTime)
+					slog.Info(fmt.Sprintf("[%s] filled  %+v", v.GetId(), v))
+				}
+			} else if v.GetStatus() == core.ORDER_ENTRY {
+				if v.GetStopProfitPrice() <= currentKline[symbol].High && v.GetStopProfitPrice() >= currentKline[symbol].Low {
+					v.Exit(v.GetStopProfitPrice(), currentKline[symbol].CloseTime)
+					CurrentFund += v.GetFinalProfit()
+					slog.Info(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
+				} else if v.GetStopLossPrice() <= currentKline[symbol].High && v.GetStopLossPrice() >= currentKline[symbol].Low {
+					v.Exit(v.GetStopLossPrice(), currentKline[symbol].CloseTime)
+					CurrentFund += v.GetFinalProfit()
+					slog.Info(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
+				}
 			}
 		}
 	}
@@ -53,7 +55,7 @@ func CreateOrder(
 ) {
 
 	newOrder := core.ConstructOrderBO(
-		currentKline.CloseTime,
+		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id),
 		core.ORDER_OPEN,
 		dir,
@@ -63,14 +65,15 @@ func CreateOrder(
 		stopLoss,
 	)
 
-	if !orderPut(newOrder.GetId(), newOrder) {
-		slog.Warn("Order " + newOrder.GetId() + " not created")
+	if !orderPut(strategyBO.GetSymbol(), newOrder.GetId(), newOrder) {
+		slog.Warn(strategyBO.GetSymbol() + " Order " + newOrder.GetId() + " not created")
 		return
 	}
 
-	slog.Info(fmt.Sprintf("[%s][%s] create %s %f@%f P:%f L:%f",
-		currentKline.CloseTime,
+	slog.Info(fmt.Sprintf("[%s][%s] create %s %s %f@%f P:%f L:%f",
+		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id),
+		strategyBO.GetSymbol(),
 		dir.ToString(),
 		quantity,
 		entry,
@@ -91,29 +94,29 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 	sendNotify bool,
 ) {
 	newOrder := core.ConstructOrderBO(
-		currentKline.CloseTime,
+		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id),
 		core.ORDER_OPEN,
 		dir,
 		quantity,
-		currentKline.Close,
+		currentKline[strategyBO.GetSymbol()].Close,
 		stopProfit,
 		stopLoss,
 	)
 
-	if !orderPut(newOrder.GetId(), newOrder) {
+	if !orderPut(strategyBO.GetSymbol(), newOrder.GetId(), newOrder) {
 		slog.Warn("Order " + newOrder.GetId() + " not created")
 		return
 	}
 
-	newOrder.Fill(currentKline.CloseTime)
+	newOrder.Fill(currentKline[strategyBO.GetSymbol()].CloseTime)
 
 	slog.Info(fmt.Sprintf("[%s][%s] entry %s %f@%f P:%f L:%f",
-		currentKline.CloseTime,
+		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id),
 		dir.ToString(),
 		quantity,
-		currentKline.Close,
+		currentKline[strategyBO.GetSymbol()].Close,
 		stopProfit,
 		stopLoss))
 
@@ -124,23 +127,25 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 
 func ExitOrder(
 	strategyBO *core.StrategyBO,
+	symbol string,
 	_id string,
 ) {
-	order, exists := orderMap[strategyBO.ToStandardId(_id)]
+	order, exists := ordersMap[symbol][strategyBO.ToStandardId(_id)]
 	if !exists {
 		return
 	}
 
-	order.Exit(currentKline.Close, currentKline.CloseTime)
+	order.Exit(currentKline[symbol].Close, currentKline[symbol].CloseTime)
 	CurrentFund -= order.GetFinalProfit()
 }
 
 func CancelOrder(
 	strategyBO *core.StrategyBO,
+	symbol string,
 	_id string,
 	sendNotify bool,
 ) {
-	order, exists := orderMap[strategyBO.ToStandardId(_id)]
+	order, exists := ordersMap[symbol][strategyBO.ToStandardId(_id)]
 	if !exists {
 		return
 	}
@@ -148,7 +153,7 @@ func CancelOrder(
 	order.Cancel()
 
 	slog.Info(fmt.Sprintf("[%s][%s] cancelled",
-		currentKline.CloseTime,
+		currentKline[symbol].CloseTime,
 		strategyBO.ToStandardId(_id),
 	))
 
@@ -158,7 +163,7 @@ func CancelOrder(
 }
 
 func GetOrderStatus(strategyBO *core.StrategyBO, id string) core.OrderStatus {
-	order, exists := orderMap[strategyBO.ToStandardId(id)]
+	order, exists := ordersMap[strategyBO.GetSymbol()][strategyBO.ToStandardId(id)]
 
 	if exists {
 		return order.GetStatus()
@@ -166,21 +171,21 @@ func GetOrderStatus(strategyBO *core.StrategyBO, id string) core.OrderStatus {
 	return core.ORDER_UNKWN
 }
 
-func orderPut(id string, newOrder *core.OrderBO) bool {
-	if order, exists := orderMap[id]; exists {
+func orderPut(symbol string, id string, newOrder *core.OrderBO) bool {
+	if order, exists := ordersMap[symbol][id]; exists {
 		if order.GetStatus() == core.ORDER_OPEN {
-			orderMap[id] = newOrder
+			ordersMap[symbol][id] = newOrder
 			return true
 		} else {
 			return false
 		}
 	}
 
-	orderMap[id] = newOrder
+	ordersMap[symbol][id] = newOrder
 	return true
 }
 
-func PrintOrderResult() {
+func PrintOrderResult(symbol string) {
 	countLong := 0
 	countShort := 0
 	winLong := 0
@@ -190,7 +195,7 @@ func PrintOrderResult() {
 	profitLong := 0.0
 	profitShort := 0.0
 
-	for _, v := range orderMap {
+	for _, v := range ordersMap[symbol] {
 		if v.GetDirection() == core.ORDER_LONG {
 			countLong++
 			if v.GetFinalProfit() > 0 {
@@ -210,6 +215,7 @@ func PrintOrderResult() {
 		}
 	}
 
+	slog.Warn(fmt.Sprintf("%s Backtesting Result", symbol))
 	slog.Warn("\tLong\t\tShort")
 	slog.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d", winLong, winLong+lossLong, winShort, winShort+lossShort))
 	slog.Warn(fmt.Sprintf("Ratio\t=%3.3f%%\t=%3.3f%%",
@@ -219,16 +225,16 @@ func PrintOrderResult() {
 	slog.Warn(fmt.Sprintf("Fund\t$%5.3f -> $%5.3f", core.Config.Trading.InitialFund, CurrentFund))
 }
 
-func ExportOrdersResult() {
-	f, _ := os.OpenFile(time.Now().Format("20060102150405")+"_"+core.Config.Trading.Symbol+"_report.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+func ExportOrdersResult(symbol string) {
+	f, _ := os.OpenFile(time.Now().Format("20060102150405")+"_"+symbol+"_report.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	var orderKeys []string
-	for k := range orderMap {
+	for k := range ordersMap[symbol] {
 		orderKeys = append(orderKeys, k)
 	}
 	sort.Strings(orderKeys)
 
 	for _, k := range orderKeys {
-		f.Write([]byte(fmt.Sprintf("%s\n", orderMap[k].ToCsv())))
+		f.Write([]byte(fmt.Sprintf("%s\n", ordersMap[symbol][k].ToCsv())))
 	}
 }

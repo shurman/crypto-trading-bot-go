@@ -10,24 +10,29 @@ var (
 	//klineSlice []*core.Kline
 	//klineLen   int = 0
 
-	NotifyNewKline  = make(chan *core.Kline)
-	NotifyKlineDone = make(chan bool)
+	NotifyNewKline  = make(map[string]chan *core.Kline)
+	NotifyKlineDone = make(map[string]chan bool)
 )
+
+type KlineNotify struct {
+	Kline  *core.Kline
+	Symbol string
+}
 
 // func GetKlineSliceLen() int {
 // 	return klineLen
 // }
 
-func recordNewKline(newKline *core.Kline) {
-	SetCurrentKline(newKline)
+func recordNewKline(symbol string, newKline *core.Kline) {
+	SetCurrentKline(symbol, newKline)
 	CheckOrderFilled()
 
 	//klineSlice = append(klineSlice, newKline)
 	//klineLen = len(klineSlice)
 
 	Logger.Debug("<- " + fmt.Sprintf("%+v", newKline))
-	NotifyNewKline <- newKline
-	<-NotifyKlineDone
+	NotifyNewKline[symbol] <- newKline
+	<-NotifyKlineDone[symbol]
 }
 
 // func GetLastKline(nth int) *Kline {

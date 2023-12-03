@@ -2,23 +2,35 @@
 package core
 
 type StrategyBO struct {
-	name       string
+	info       *StrategyBase
 	nextKline  chan Kline
 	doneAction chan bool
-	//Execute   func(StrategyBO)
 }
 
-func ConstructStrategy(_name string, _execute func(*Kline, *StrategyBO)) *StrategyBO {
+type StrategyBase struct {
+	name    string
+	symbol  string
+	execute func(*Kline, *StrategyBO)
+}
+
+func ConstructStrategyBase(_name string, _execute func(*Kline, *StrategyBO)) *StrategyBase {
+	return &StrategyBase{
+		name:    _name,
+		execute: _execute,
+	}
+}
+
+func InitialStrategy(_info StrategyBase, symbol string) *StrategyBO {
+	_info.symbol = symbol
 	newStrategy := &StrategyBO{
-		name:       _name,
+		info:       &_info,
 		nextKline:  make(chan Kline),
 		doneAction: make(chan bool),
-		//Execute:   _execute,
 	}
 	go func() {
 		for {
 			nextKline := <-newStrategy.nextKline
-			_execute(&nextKline, newStrategy)
+			_info.execute(&nextKline, newStrategy)
 			newStrategy.doneAction <- true
 		}
 	}()
@@ -26,9 +38,9 @@ func ConstructStrategy(_name string, _execute func(*Kline, *StrategyBO)) *Strate
 	return newStrategy
 }
 
-// func (bo *StrategyBO) GetName() string {
-// 	return bo.name
-// }
+func (bo *StrategyBO) GetSymbol() string {
+	return bo.info.symbol
+}
 
 func (bo *StrategyBO) GetChanNextKline() chan Kline {
 	return bo.nextKline
@@ -39,5 +51,5 @@ func (bo *StrategyBO) GetChanDoneAction() chan bool {
 }
 
 func (bo *StrategyBO) ToStandardId(id string) string {
-	return bo.name + "-" + id
+	return bo.info.name + "-" + id
 }

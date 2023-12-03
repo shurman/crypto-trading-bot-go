@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	lastTick    *futures.WsKline
-	currentTick *futures.WsKline
+	lastTick    = make(map[string]*futures.WsKline)
+	currentTick = make(map[string]*futures.WsKline)
 )
 
 func InitWsTickService() {
@@ -19,9 +19,14 @@ func InitWsTickService() {
 		Logger.Error(err.Error())
 	}
 
-	doneC, _, err := futures.WsKlineServe( //WsCombinedKlineServe for multiple
-		core.Config.Trading.Symbol,
-		core.Config.Trading.Interval,
+	// doneC, _, err := futures.WsKlineServe(
+	// 	core.Config.Trading.Symbol,
+	// 	core.Config.Trading.Interval,
+	// 	wsKlineHandler,
+	// 	errHandler,
+	// )
+	doneC, _, err := futures.WsCombinedKlineServe(
+		genSymbolsMap(),
 		wsKlineHandler,
 		errHandler,
 	)
@@ -37,16 +42,25 @@ func InitWsTickService() {
 func newKlineHandler(event *futures.WsKlineEvent) {
 	Logger.Debug("ws event: " + fmt.Sprintf("%+v", event.Kline))
 
-	lastTick = currentTick
-	currentTick = &event.Kline
+	lastTick[event.Symbol] = currentTick[event.Symbol]
+	currentTick[event.Symbol] = &event.Kline
 
-	if lastTick == nil {
+	if lastTick[event.Symbol] == nil {
 		return
 	}
-	if currentTick.StartTime != lastTick.StartTime {
-		newKline := core.ConvertToKlineFromWsKline(lastTick)
+	if currentTick[event.Symbol].StartTime != lastTick[event.Symbol].StartTime {
+		newKline := core.ConvertToKlineFromWsKline(lastTick[event.Symbol])
 
 		Logger.Info(fmt.Sprintf("%+v", newKline))
-		recordNewKline(&newKline)
+		recordNewKline(event.Symbol, &newKline)
 	}
+}
+
+func genSymbolsMap() map[string]string {
+	symbolMap := make(map[string]string)
+	for _, symbol := range core.Config.Trading.Symbols {
+		symbolMap[symbol] = core.Config.Trading.Interval
+	}
+
+	return symbolMap
 }

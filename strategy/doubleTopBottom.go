@@ -5,6 +5,7 @@ import (
 	"crypto-trading-bot-go/core"
 	"crypto-trading-bot-go/service"
 	"fmt"
+	//"log/slog"
 )
 
 var (

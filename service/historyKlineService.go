@@ -27,17 +27,19 @@ func init() {
 }
 
 func LoadHistoryKline() {
-	historyKlines, _ := futuresClient.NewKlinesService().
-		Symbol(core.Config.Trading.Symbol).
-		Limit(max(min(core.Config.Trading.Indicator.StartFromKlines+1, 1500), 1)).
-		Interval(core.Config.Trading.Interval).
-		Do(context.Background())
+	for _, symbol := range core.Config.Trading.Symbols {
+		historyKlines, _ := futuresClient.NewKlinesService().
+			Symbol(symbol).
+			Limit(max(min(core.Config.Trading.Indicator.StartFromKlines+1, 1500), 1)).
+			Interval(core.Config.Trading.Interval).
+			Do(context.Background())
 
-	for _, fKline := range historyKlines[:len(historyKlines)-1] { //remove last one because of not closed
-		hKline := core.ConvertKlineFromFuturesKline(fKline)
+		for _, fKline := range historyKlines[:len(historyKlines)-1] { //remove last one because of not closed
+			hKline := core.ConvertKlineFromFuturesKline(fKline)
 
-		Logger.Debug("Loaded " + fmt.Sprintf("%+v", hKline))
-		recordNewKline(&hKline)
+			Logger.Debug("Loaded " + fmt.Sprintf("%+v", hKline))
+			recordNewKline(symbol, &hKline)
+		}
 	}
 
 	Logger.Info("[LoadHistoryKline] History klines loaded.")
@@ -134,7 +136,7 @@ func LoadRawHistoryKline(symbol string, interval string) {
 			CloseTime: time.Unix(item.GetIndex(5).MustInt64()/1000, 0),
 		}
 
-		recordNewKline(kline)
+		recordNewKline(symbol, kline)
 	}
 }
 

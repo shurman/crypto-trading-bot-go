@@ -6,31 +6,45 @@ import (
 )
 
 var (
-	strategySlice []*core.StrategyBO
+	strategyBaseList []*core.StrategyBase
+	strategiesMap    = make(map[string]([]*core.StrategyBO))
 )
 
 func InitStrategyService() {
-	go waitPriceFeeding()
+	for _, symbol := range core.Config.Trading.Symbols {
+		for _, o := range strategyBaseList {
+			strategiesMap[symbol] = append(strategiesMap[symbol], core.InitialStrategy(*o, symbol))
+		}
+
+		go waitPriceFeeding(symbol)
+	}
 
 	Logger.Info("[InitStrategyService] Initialized")
 }
 
 func RegisterStrategyFunc(f func(*core.Kline, *core.StrategyBO), name string) {
-	strategySlice = append(strategySlice, core.ConstructStrategy(name, f))
+	strategyBaseList = append(strategyBaseList, core.ConstructStrategyBase(name, f))
 }
 
-func waitPriceFeeding() {
-	for {
-		nextKline := <-NotifyNewKline
+func waitPriceFeeding(symbol string) {
+	initNotifyChan(symbol)
 
-		for _, _strategy := range strategySlice {
+	for {
+		nextKline := <-NotifyNewKline[symbol]
+
+		for _, _strategy := range strategiesMap[symbol] {
 			_strategy.GetChanNextKline() <- *nextKline
 		}
 
-		for _, _strategy := range strategySlice {
+		for _, _strategy := range strategiesMap[symbol] {
 			<-_strategy.GetChanDoneAction()
 		}
 
-		NotifyKlineDone <- true
+		NotifyKlineDone[symbol] <- true
 	}
+}
+
+func initNotifyChan(symbol string) {
+	NotifyNewKline[symbol] = make(chan *core.Kline)
+	NotifyKlineDone[symbol] = make(chan bool)
 }

@@ -20,13 +20,13 @@ type SystemConfigs struct {
 }
 
 type TradingConfigs struct {
-	Symbol            string  `mapstructure:"symbol"`
-	Interval          string  `mapstructure:"interval"`
-	InitialFund       float64 `mapstructure:"initialFund"`
-	SingleRiskRatio   float64 `mapstructure:"singleRiskRatio"`
-	ProfitLossRatio   float64 `mapstructure:"ProfitLossRatio"`
-	EnableAccumulated bool    `mapstructure:"enableAccumulated"`
-	Mode              string  `mapstructure:"mode"`
+	Symbols           []string `mapstructure:"symbols"`
+	Interval          string   `mapstructure:"interval"`
+	InitialFund       float64  `mapstructure:"initialFund"`
+	SingleRiskRatio   float64  `mapstructure:"singleRiskRatio"`
+	ProfitLossRatio   float64  `mapstructure:"ProfitLossRatio"`
+	EnableAccumulated bool     `mapstructure:"enableAccumulated"`
+	Mode              string   `mapstructure:"mode"`
 
 	Indicator   IndicatorConfigs   `mapstructure:"indicator"`
 	Backtesting BacktestingConfigs `mapstructure:"backtesting"`
