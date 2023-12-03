@@ -2,7 +2,9 @@ system:
   loglevel: INFO
 
 trading:
-  symbol: ETHUSDT
+  symbols:
+    - BTCUSDT
+    - ETHUSDT
   interval: 15m
 
   initialFund: 10000
