@@ -16,11 +16,9 @@ var (
 	CurrentFund = core.Config.Trading.InitialFund
 )
 
-func SetCurrentKline(symbol string, k *core.Kline) {
+func CheckOrderFilled(symbol string, k *core.Kline) {
 	currentKline[symbol] = k
-}
 
-func CheckOrderFilled(symbol string) {
 	for _, v := range ordersMap[symbol] {
 		if v.GetStatus() == core.ORDER_OPEN {
 			if v.GetEntryPrice() <= currentKline[symbol].High && v.GetEntryPrice() >= currentKline[symbol].Low {

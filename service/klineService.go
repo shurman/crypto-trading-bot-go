@@ -16,8 +16,7 @@ var (
 // }
 
 func recordNewKline(symbol string, newKline *core.Kline) {
-	SetCurrentKline(symbol, newKline)
-	CheckOrderFilled(symbol)
+	CheckOrderFilled(symbol, newKline)
 
 	//klineSlice = append(klineSlice, newKline)
 	//klineLen = len(klineSlice)

@@ -17,9 +17,9 @@ var (
 
 	orderId = 1
 
-	k1 *core.Kline
-	k2 *core.Kline
-	k3 *core.Kline
+	lastKline1 = make(map[string]*core.Kline)
+	lastKline2 = make(map[string]*core.Kline)
+	lastKline3 = make(map[string]*core.Kline)
 )
 
 func init() {
@@ -27,13 +27,17 @@ func init() {
 }
 
 func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
-	k3 = k2
-	k2 = k1
-	k1 = nextKline
+	lastKline3[bo.GetSymbol()] = lastKline2[bo.GetSymbol()]
+	lastKline2[bo.GetSymbol()] = lastKline1[bo.GetSymbol()]
+	lastKline1[bo.GetSymbol()] = nextKline
 
-	if k3 == nil {
+	if lastKline3[bo.GetSymbol()] == nil {
 		return
 	}
+
+	k1 := lastKline1[bo.GetSymbol()]
+	k2 := lastKline2[bo.GetSymbol()]
+	k3 := lastKline3[bo.GetSymbol()]
 
 	//slog.Info(fmt.Sprintf("[doubleTopBottom] state=%d %s", state, k1.ToString()))
 
@@ -79,7 +83,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_LONG,
-				getQuantity(k1),
+				getQuantity(bo.GetSymbol()),
 				k1.High,
 				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.Low,
@@ -101,7 +105,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_LONG,
-				getQuantity(k1),
+				getQuantity(bo.GetSymbol()),
 				k1.High,
 				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.Low,
@@ -121,7 +125,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_LONG,
-				getQuantity(k1),
+				getQuantity(bo.GetSymbol()),
 				k1.High,
 				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.Low,
@@ -138,7 +142,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_LONG,
-				getQuantity(k1),
+				getQuantity(bo.GetSymbol()),
 				k1.High,
 				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.Low,
@@ -174,7 +178,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_SHORT,
-				getQuantity(k1),
+				getQuantity(bo.GetSymbol()),
 				k1.Low,
 				k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.High,
@@ -193,7 +197,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				bo,
 				genOrderId(),
 				core.ORDER_LONG,
-				getQuantity(k1),
+				getQuantity(bo.GetSymbol()),
 				k1.Low,
 				k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.High,
@@ -210,11 +214,11 @@ func genOrderId() string {
 	return fmt.Sprintf("%04d", orderId)
 }
 
-func getQuantity(kline *core.Kline) float64 {
+func getQuantity(symbol string) float64 {
 	if core.Config.Trading.EnableAccumulated {
-		return service.CurrentFund * core.Config.Trading.SingleRiskRatio / (k1.High - k1.Low)
+		return service.CurrentFund * core.Config.Trading.SingleRiskRatio / (lastKline1[symbol].High - lastKline1[symbol].Low)
 	} else {
-		return core.Config.Trading.InitialFund * core.Config.Trading.SingleRiskRatio / (k1.High - k1.Low)
+		return core.Config.Trading.InitialFund * core.Config.Trading.SingleRiskRatio / (lastKline1[symbol].High - lastKline1[symbol].Low)
 	}
 }
 
