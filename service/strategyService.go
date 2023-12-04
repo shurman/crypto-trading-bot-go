@@ -8,6 +8,9 @@ import (
 var (
 	strategyBaseList []*core.StrategyBase
 	strategiesMap    = make(map[string]([]*core.StrategyBO))
+
+	NotifyNewKline    = make(map[string]chan *core.Kline)
+	NotifyAnalyzeDone = make(map[string]chan bool)
 )
 
 func InitStrategyService() {
@@ -40,11 +43,11 @@ func waitPriceFeeding(symbol string) {
 			<-_strategy.GetChanDoneAction()
 		}
 
-		NotifyKlineDone[symbol] <- true
+		NotifyAnalyzeDone[symbol] <- true
 	}
 }
 
 func initNotifyChan(symbol string) {
 	NotifyNewKline[symbol] = make(chan *core.Kline)
-	NotifyKlineDone[symbol] = make(chan bool)
+	NotifyAnalyzeDone[symbol] = make(chan bool)
 }

@@ -20,24 +20,22 @@ func SetCurrentKline(symbol string, k *core.Kline) {
 	currentKline[symbol] = k
 }
 
-func CheckOrderFilled() {
-	for _, symbol := range core.Config.Trading.Symbols {
-		for _, v := range ordersMap[symbol] {
-			if v.GetStatus() == core.ORDER_OPEN {
-				if v.GetEntryPrice() <= currentKline[symbol].High && v.GetEntryPrice() >= currentKline[symbol].Low {
-					v.Fill(currentKline[symbol].CloseTime)
-					slog.Info(fmt.Sprintf("[%s] filled  %+v", v.GetId(), v))
-				}
-			} else if v.GetStatus() == core.ORDER_ENTRY {
-				if v.GetStopProfitPrice() <= currentKline[symbol].High && v.GetStopProfitPrice() >= currentKline[symbol].Low {
-					v.Exit(v.GetStopProfitPrice(), currentKline[symbol].CloseTime)
-					CurrentFund += v.GetFinalProfit()
-					slog.Info(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
-				} else if v.GetStopLossPrice() <= currentKline[symbol].High && v.GetStopLossPrice() >= currentKline[symbol].Low {
-					v.Exit(v.GetStopLossPrice(), currentKline[symbol].CloseTime)
-					CurrentFund += v.GetFinalProfit()
-					slog.Info(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
-				}
+func CheckOrderFilled(symbol string) {
+	for _, v := range ordersMap[symbol] {
+		if v.GetStatus() == core.ORDER_OPEN {
+			if v.GetEntryPrice() <= currentKline[symbol].High && v.GetEntryPrice() >= currentKline[symbol].Low {
+				v.Fill(currentKline[symbol].CloseTime)
+				slog.Info(fmt.Sprintf("[%s] filled  %+v", v.GetId(), v))
+			}
+		} else if v.GetStatus() == core.ORDER_ENTRY {
+			if v.GetStopProfitPrice() <= currentKline[symbol].High && v.GetStopProfitPrice() >= currentKline[symbol].Low {
+				v.Exit(v.GetStopProfitPrice(), currentKline[symbol].CloseTime)
+				CurrentFund += v.GetFinalProfit()
+				slog.Info(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
+			} else if v.GetStopLossPrice() <= currentKline[symbol].High && v.GetStopLossPrice() >= currentKline[symbol].Low {
+				v.Exit(v.GetStopLossPrice(), currentKline[symbol].CloseTime)
+				CurrentFund += v.GetFinalProfit()
+				slog.Info(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
 			}
 		}
 	}

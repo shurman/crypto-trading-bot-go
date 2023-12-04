@@ -7,17 +7,9 @@ import (
 )
 
 var (
-	//klineSlice []*core.Kline
-	//klineLen   int = 0
-
-	NotifyNewKline  = make(map[string]chan *core.Kline)
-	NotifyKlineDone = make(map[string]chan bool)
+// klineSlice []*core.Kline
+// klineLen   int = 0
 )
-
-type KlineNotify struct {
-	Kline  *core.Kline
-	Symbol string
-}
 
 // func GetKlineSliceLen() int {
 // 	return klineLen
@@ -25,14 +17,14 @@ type KlineNotify struct {
 
 func recordNewKline(symbol string, newKline *core.Kline) {
 	SetCurrentKline(symbol, newKline)
-	CheckOrderFilled()
+	CheckOrderFilled(symbol)
 
 	//klineSlice = append(klineSlice, newKline)
 	//klineLen = len(klineSlice)
 
 	Logger.Debug("<- " + fmt.Sprintf("%+v", newKline))
 	NotifyNewKline[symbol] <- newKline
-	<-NotifyKlineDone[symbol]
+	<-NotifyAnalyzeDone[symbol]
 }
 
 // func GetLastKline(nth int) *Kline {
