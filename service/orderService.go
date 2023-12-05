@@ -13,8 +13,14 @@ var (
 	ordersMap    = make(map[string](map[string]*core.OrderBO))
 	currentKline = make(map[string]*core.Kline)
 
-	CurrentFund = core.Config.Trading.InitialFund
+	CurrentFund = make(map[string]float64)
 )
+
+func init() {
+	for _, symbol := range core.Config.Trading.Symbols {
+		CurrentFund[symbol] = core.Config.Trading.InitialFund
+	}
+}
 
 func CheckOrderFilled(symbol string, k *core.Kline) {
 	currentKline[symbol] = k
@@ -28,11 +34,11 @@ func CheckOrderFilled(symbol string, k *core.Kline) {
 		} else if v.GetStatus() == core.ORDER_ENTRY {
 			if v.GetStopProfitPrice() <= currentKline[symbol].High && v.GetStopProfitPrice() >= currentKline[symbol].Low {
 				v.Exit(v.GetStopProfitPrice(), currentKline[symbol].CloseTime)
-				CurrentFund += v.GetFinalProfit()
+				CurrentFund[symbol] += v.GetFinalProfit()
 				slog.Debug(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
 			} else if v.GetStopLossPrice() <= currentKline[symbol].High && v.GetStopLossPrice() >= currentKline[symbol].Low {
 				v.Exit(v.GetStopLossPrice(), currentKline[symbol].CloseTime)
-				CurrentFund += v.GetFinalProfit()
+				CurrentFund[symbol] += v.GetFinalProfit()
 				slog.Debug(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
 			}
 		}
@@ -132,7 +138,7 @@ func ExitOrder(
 	}
 
 	order.Exit(currentKline[symbol].Close, currentKline[symbol].CloseTime)
-	CurrentFund -= order.GetFinalProfit()
+	CurrentFund[symbol] -= order.GetFinalProfit()
 }
 
 func CancelOrder(
@@ -221,7 +227,7 @@ func PrintOrderResult(symbol string) {
 		float32(winLong)/float32(winLong+lossLong)*100,
 		float32(winShort)/float32(winShort+lossShort)*100))
 	slog.Warn(fmt.Sprintf("Profit\t$%5.3f\t$%5.3f", profitLong, profitShort))
-	slog.Warn(fmt.Sprintf("Fund\t$%5.3f -> $%5.3f", core.Config.Trading.InitialFund, CurrentFund))
+	slog.Warn(fmt.Sprintf("Fund\t$%5.3f -> $%5.3f", core.Config.Trading.InitialFund, CurrentFund[symbol]))
 }
 
 func ExportOrdersResult(symbol string) {

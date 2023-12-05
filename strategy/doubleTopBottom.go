@@ -20,6 +20,8 @@ var (
 	lastKline1 = make(map[string]*core.Kline)
 	lastKline2 = make(map[string]*core.Kline)
 	lastKline3 = make(map[string]*core.Kline)
+
+	phase2 = true
 )
 
 func init() {
@@ -216,7 +218,7 @@ func genOrderId() string {
 
 func getQuantity(symbol string) float64 {
 	if core.Config.Trading.EnableAccumulated {
-		return service.CurrentFund * core.Config.Trading.SingleRiskRatio / (lastKline1[symbol].High - lastKline1[symbol].Low)
+		return service.CurrentFund[symbol] * core.Config.Trading.SingleRiskRatio / (lastKline1[symbol].High - lastKline1[symbol].Low)
 	} else {
 		return core.Config.Trading.InitialFund * core.Config.Trading.SingleRiskRatio / (lastKline1[symbol].High - lastKline1[symbol].Low)
 	}

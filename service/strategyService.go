@@ -13,6 +13,13 @@ var (
 	NotifyAnalyzeDone = make(map[string]chan bool)
 )
 
+func init() {
+	for _, symbol := range core.Config.Trading.Symbols {
+		NotifyNewKline[symbol] = make(chan *core.Kline)
+		NotifyAnalyzeDone[symbol] = make(chan bool)
+	}
+}
+
 func InitStrategyService() {
 	for _, symbol := range core.Config.Trading.Symbols {
 		for _, o := range strategyBaseList {
@@ -30,8 +37,6 @@ func RegisterStrategyFunc(f func(*core.Kline, *core.StrategyBO), name string) {
 }
 
 func waitPriceFeeding(symbol string) {
-	initNotifyChan(symbol)
-
 	for {
 		nextKline := <-NotifyNewKline[symbol]
 
@@ -45,9 +50,4 @@ func waitPriceFeeding(symbol string) {
 
 		NotifyAnalyzeDone[symbol] <- true
 	}
-}
-
-func initNotifyChan(symbol string) {
-	NotifyNewKline[symbol] = make(chan *core.Kline)
-	NotifyAnalyzeDone[symbol] = make(chan bool)
 }
