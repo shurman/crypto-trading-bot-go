@@ -23,17 +23,17 @@ func CheckOrderFilled(symbol string, k *core.Kline) {
 		if v.GetStatus() == core.ORDER_OPEN {
 			if v.GetEntryPrice() <= currentKline[symbol].High && v.GetEntryPrice() >= currentKline[symbol].Low {
 				v.Fill(currentKline[symbol].CloseTime)
-				slog.Info(fmt.Sprintf("[%s] filled  %+v", v.GetId(), v))
+				slog.Debug(fmt.Sprintf("[%s] filled  %+v", v.GetId(), v))
 			}
 		} else if v.GetStatus() == core.ORDER_ENTRY {
 			if v.GetStopProfitPrice() <= currentKline[symbol].High && v.GetStopProfitPrice() >= currentKline[symbol].Low {
 				v.Exit(v.GetStopProfitPrice(), currentKline[symbol].CloseTime)
 				CurrentFund += v.GetFinalProfit()
-				slog.Info(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
+				slog.Debug(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
 			} else if v.GetStopLossPrice() <= currentKline[symbol].High && v.GetStopLossPrice() >= currentKline[symbol].Low {
 				v.Exit(v.GetStopLossPrice(), currentKline[symbol].CloseTime)
 				CurrentFund += v.GetFinalProfit()
-				slog.Info(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
+				slog.Debug(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
 			}
 		}
 	}
@@ -66,7 +66,7 @@ func CreateOrder(
 		return
 	}
 
-	slog.Info(fmt.Sprintf("[%s][%s] create %s %s %f@%f P:%f L:%f",
+	slog.Debug(fmt.Sprintf("[%s][%s] create %s %s %f@%f P:%f L:%f",
 		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id),
 		strategyBO.GetSymbol(),
@@ -107,7 +107,7 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 
 	newOrder.Fill(currentKline[strategyBO.GetSymbol()].CloseTime)
 
-	slog.Info(fmt.Sprintf("[%s][%s] entry %s %f@%f P:%f L:%f",
+	slog.Debug(fmt.Sprintf("[%s][%s] entry %s %f@%f P:%f L:%f",
 		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id),
 		dir.ToString(),
@@ -148,7 +148,7 @@ func CancelOrder(
 
 	order.Cancel()
 
-	slog.Info(fmt.Sprintf("[%s][%s] cancelled",
+	slog.Debug(fmt.Sprintf("[%s][%s] cancelled",
 		currentKline[symbol].CloseTime,
 		strategyBO.ToStandardId(_id),
 	))
@@ -168,7 +168,9 @@ func GetOrderStatus(strategyBO *core.StrategyBO, id string) core.OrderStatus {
 }
 
 func orderPut(symbol string, id string, newOrder *core.OrderBO) bool {
-	if order, exists := ordersMap[symbol][id]; exists {
+	if _, exists := ordersMap[symbol]; !exists {
+		ordersMap[symbol] = make(map[string]*core.OrderBO)
+	} else if order, exists := ordersMap[symbol][id]; exists {
 		if order.GetStatus() == core.ORDER_OPEN {
 			ordersMap[symbol][id] = newOrder
 			return true
@@ -211,6 +213,7 @@ func PrintOrderResult(symbol string) {
 		}
 	}
 
+	slog.Warn("=====================================")
 	slog.Warn(fmt.Sprintf("%s Backtesting Result", symbol))
 	slog.Warn("\tLong\t\tShort")
 	slog.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d", winLong, winLong+lossLong, winShort, winShort+lossShort))

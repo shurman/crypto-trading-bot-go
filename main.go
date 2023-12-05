@@ -8,8 +8,8 @@ import (
 )
 
 //TODO
-//multiple coins
 //DTB reset after long waiting / state 1,-1 rule rework / phase 2
+//multiple interval(?)
 
 func main() {
 	service.InitStrategyService()

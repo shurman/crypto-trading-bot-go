@@ -50,7 +50,7 @@ func DownloadRawHistoryKline(symbol string, interval string, startTime int64, li
 	defer f.Close()
 
 	for {
-		slog.Info(fmt.Sprintf("Getting %d", startTime))
+		slog.Info(fmt.Sprintf("Downloading %s %d klines from %d", symbol, limit, startTime))
 		response, error := http.Get(fmt.Sprintf("https://fapi.binance.com/fapi/v1/klines?symbol=%s&interval=%s&startTime=%d&limit=%d", symbol, interval, startTime, limit))
 
 		if error != nil {
