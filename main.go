@@ -8,7 +8,7 @@ import (
 )
 
 //TODO
-//DTB reset after long waiting / state 1,-1 rule rework / phase 2
+//DTB phase 2 / reset after long waiting / state 1,-1 rule rework
 //multiple interval(?)
 
 func main() {
