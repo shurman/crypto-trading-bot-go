@@ -31,6 +31,10 @@ func init() {
 func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 	symbol := bo.GetSymbol()
 
+	if nextKline.High == nextKline.Low {
+		return
+	}
+
 	lastKline3[symbol] = lastKline2[symbol]
 	lastKline2[symbol] = lastKline1[symbol]
 	lastKline1[symbol] = nextKline
@@ -84,19 +88,19 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			*state = 3
 
 		} else if k1.Low < *localLow-(*localHigh-*localLow)*0.4 {
-			paramReset(bo.GetSymbol())
+			paramReset(symbol)
 
 		} else if k1.High > *localHigh+(*localHigh-*localLow)*0.4 {
-			paramReset(bo.GetSymbol())
+			paramReset(symbol)
 		}
 
 	} else if *state == 3 {
 		if k1.High > k2.High {
 			service.CreateOrder(
 				bo,
-				genOrderId(bo.GetSymbol()),
+				genOrderId(symbol),
 				core.ORDER_LONG,
-				getQuantity(bo.GetSymbol()),
+				getQuantity(symbol),
 				k1.High,
 				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
 				k1.Low,
@@ -205,7 +209,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			service.CreateOrder(
 				bo,
 				genOrderId(symbol),
-				core.ORDER_LONG,
+				core.ORDER_SHORT,
 				getQuantity(symbol),
 				k1.Low,
 				k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,

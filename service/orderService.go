@@ -231,7 +231,8 @@ func PrintOrderResult(symbol string) {
 }
 
 func ExportOrdersResult(symbol string) {
-	f, _ := os.OpenFile(time.Now().Format("20060102150405")+"_"+symbol+"_report.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	filename := time.Now().Format("20060102150405") + "_" + symbol + "_report.csv"
+	f, _ := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	var orderKeys []string
 	for k := range ordersMap[symbol] {
@@ -242,4 +243,6 @@ func ExportOrdersResult(symbol string) {
 	for _, k := range orderKeys {
 		f.Write([]byte(fmt.Sprintf("%s\n", ordersMap[symbol][k].ToCsv())))
 	}
+
+	slog.Info("Export order list to " + filename)
 }
