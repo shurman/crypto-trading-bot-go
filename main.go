@@ -9,7 +9,7 @@ import (
 
 //TODO
 //DTB phase 2
-//try ratio to 1.5
+//try ratio to 1.5 //conclusion not trade btc
 
 //Future work
 //state 1,-1 rule rework
