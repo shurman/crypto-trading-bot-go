@@ -67,14 +67,23 @@ func CreateOrder(
 		stopLoss,
 	)
 
-	if !orderPut(strategyBO.GetSymbol(), newOrder.GetId(), newOrder) {
+	success, isReplaced := orderPut(strategyBO.GetSymbol(), newOrder.GetId(), newOrder)
+	if !success {
 		slog.Warn(strategyBO.GetSymbol() + " Order " + newOrder.GetId() + " not created")
 		return
 	}
 
-	message := fmt.Sprintf("[%s][%s] create %s %s %f@%f P:%f L:%f",
+	var action string
+	if isReplaced {
+		action = "cancel & re-create"
+	} else {
+		action = "create"
+	}
+
+	message := fmt.Sprintf("[%s][%s] %s %s %s %f@%f P:%f L:%f",
 		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id),
+		action,
 		strategyBO.GetSymbol(),
 		dir.ToString(),
 		quantity,
@@ -107,16 +116,25 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 		stopLoss,
 	)
 
-	if !orderPut(strategyBO.GetSymbol(), newOrder.GetId(), newOrder) {
-		slog.Warn("Order " + newOrder.GetId() + " not created")
+	success, isReplaced := orderPut(strategyBO.GetSymbol(), newOrder.GetId(), newOrder)
+	if !success {
+		slog.Warn(strategyBO.GetSymbol() + " Order " + newOrder.GetId() + " not created")
 		return
+	}
+	var action string
+	if isReplaced {
+		action = "cancel & entry"
+	} else {
+		action = "entry"
 	}
 
 	newOrder.Fill(currentKline[strategyBO.GetSymbol()].CloseTime)
 
-	message := fmt.Sprintf("[%s][%s] entry %s %f@%f P:%f L:%f",
+	message := fmt.Sprintf("[%s][%s] %s %s %s %f@%f P:%f L:%f",
 		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id),
+		action,
+		strategyBO.GetSymbol(),
 		dir.ToString(),
 		quantity,
 		currentKline[strategyBO.GetSymbol()].Close,
@@ -175,20 +193,20 @@ func GetOrderStatus(strategyBO *core.StrategyBO, id string) core.OrderStatus {
 	return core.ORDER_UNKWN
 }
 
-func orderPut(symbol string, id string, newOrder *core.OrderBO) bool {
+func orderPut(symbol string, id string, newOrder *core.OrderBO) (success bool, isReplaced bool) {
 	if _, exists := ordersMap[symbol]; !exists {
 		ordersMap[symbol] = make(map[string]*core.OrderBO)
 	} else if order, exists := ordersMap[symbol][id]; exists {
 		if order.GetStatus() == core.ORDER_OPEN {
 			ordersMap[symbol][id] = newOrder
-			return true
+			return true, true
 		} else {
-			return false
+			return false, false
 		}
 	}
 
 	ordersMap[symbol][id] = newOrder
-	return true
+	return true, false
 }
 
 func PrintOrderResult(symbol string) {

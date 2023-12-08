@@ -9,7 +9,6 @@ import (
 
 //TODO
 //DTB phase 2
-//slack notify
 //try ratio to 1.5
 
 //Future work
