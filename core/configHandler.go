@@ -53,6 +53,7 @@ type BinanceConfigs struct {
 }
 
 type SlackConfigs struct {
+	Enable  bool   `mapstructure:"enable"`
 	Webhook string `mapstructure:"webhook"`
 	Channel string `mapstructure:"channel"`
 }

@@ -28,5 +28,6 @@ binance:
   apisecret: xxx
 
 slack:
+  enable: false
   webhook: https://hooks.slack.com/services/xxxx
   channel: "#xxxx"

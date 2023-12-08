@@ -8,7 +8,12 @@ import (
 )
 
 //TODO
-//DTB phase 2 / reset after long waiting / state 1,-1 rule rework
+//DTB phase 2
+//slack notify
+//try ratio to 1.5
+
+//Future work
+//state 1,-1 rule rework
 //multiple interval(?)
 
 func main() {

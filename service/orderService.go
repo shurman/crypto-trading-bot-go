@@ -72,7 +72,7 @@ func CreateOrder(
 		return
 	}
 
-	slog.Debug(fmt.Sprintf("[%s][%s] create %s %s %f@%f P:%f L:%f",
+	message := fmt.Sprintf("[%s][%s] create %s %s %f@%f P:%f L:%f",
 		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id),
 		strategyBO.GetSymbol(),
@@ -80,10 +80,11 @@ func CreateOrder(
 		quantity,
 		entry,
 		stopProfit,
-		stopLoss))
+		stopLoss)
+	slog.Debug(message)
 
-	if sendNotify {
-		//send slack
+	if sendNotify && core.Config.Slack.Enable {
+		SendSlack(message)
 	}
 }
 
@@ -113,17 +114,18 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 
 	newOrder.Fill(currentKline[strategyBO.GetSymbol()].CloseTime)
 
-	slog.Debug(fmt.Sprintf("[%s][%s] entry %s %f@%f P:%f L:%f",
+	message := fmt.Sprintf("[%s][%s] entry %s %f@%f P:%f L:%f",
 		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id),
 		dir.ToString(),
 		quantity,
 		currentKline[strategyBO.GetSymbol()].Close,
 		stopProfit,
-		stopLoss))
+		stopLoss)
+	slog.Debug(message)
 
-	if sendNotify {
-		//send slack
+	if sendNotify && core.Config.Slack.Enable {
+		SendSlack(message)
 	}
 }
 
@@ -154,13 +156,13 @@ func CancelOrder(
 
 	order.Cancel()
 
-	slog.Debug(fmt.Sprintf("[%s][%s] cancelled",
+	message := fmt.Sprintf("[%s][%s] cancelled",
 		currentKline[symbol].CloseTime,
-		strategyBO.ToStandardId(_id),
-	))
+		strategyBO.ToStandardId(_id))
+	slog.Debug(message)
 
-	if sendNotify {
-		//send slack
+	if sendNotify && core.Config.Slack.Enable {
+		SendSlack(message)
 	}
 }
 
