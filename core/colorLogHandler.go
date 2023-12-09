@@ -3,7 +3,8 @@ package core
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+
+	//"encoding/json"
 	"fmt"
 	"log/slog"
 	"path/filepath"
@@ -60,26 +61,26 @@ func (h *Handler) WithGroup(name string) slog.Handler {
 	return &Handler{h: h.h.WithGroup(name), b: h.b, r: h.r, m: h.m}
 }
 
-func (h *Handler) computeAttrs(
-	ctx context.Context,
-	r slog.Record,
-) (map[string]any, error) {
-	h.m.Lock()
-	defer func() {
-		h.b.Reset()
-		h.m.Unlock()
-	}()
-	if err := h.h.Handle(ctx, r); err != nil {
-		return nil, fmt.Errorf("error when calling inner handler's Handle: %w", err)
-	}
+// func (h *Handler) computeAttrs(
+// 	ctx context.Context,
+// 	r slog.Record,
+// ) (map[string]any, error) {
+// 	h.m.Lock()
+// 	defer func() {
+// 		h.b.Reset()
+// 		h.m.Unlock()
+// 	}()
+// 	if err := h.h.Handle(ctx, r); err != nil {
+// 		return nil, fmt.Errorf("error when calling inner handler's Handle: %w", err)
+// 	}
 
-	var attrs map[string]any
-	err := json.Unmarshal(h.b.Bytes(), &attrs)
-	if err != nil {
-		return nil, fmt.Errorf("error when unmarshaling inner handler's Handle result: %w", err)
-	}
-	return attrs, nil
-}
+// 	var attrs map[string]any
+// 	err := json.Unmarshal(h.b.Bytes(), &attrs)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error when unmarshaling inner handler's Handle result: %w", err)
+// 	}
+// 	return attrs, nil
+// }
 
 func (h *Handler) Handle(ctx context.Context, r slog.Record) error {
 

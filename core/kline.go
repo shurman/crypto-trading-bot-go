@@ -20,7 +20,7 @@ type Kline struct {
 }
 
 func (k *Kline) ToString() string {
-	return fmt.Sprintf("{s_time: %s, o:%f, h:%f, l:%f, c:%f}", k.StartTime, k.Open, k.High, k.Low, k.Close)
+	return fmt.Sprintf("{s_time: %s, o:%.2f, h:%.2f, l:%.2f, c:%.2f}", k.StartTime, k.Open, k.High, k.Low, k.Close)
 }
 
 func ConvertToKlineFromWsKline(tick *futures.WsKline) Kline {
@@ -48,7 +48,7 @@ func ConvertKlineFromFuturesKline(tick *futures.Kline) Kline {
 }
 
 func parseFloat(str string) float64 {
-	result, _ := strconv.ParseFloat(str, 10)
+	result, _ := strconv.ParseFloat(str, 64)
 
 	return result
 }

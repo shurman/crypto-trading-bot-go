@@ -51,7 +51,7 @@ func newKlineHandler(event *futures.WsKlineEvent) {
 	if currentTick[event.Symbol].StartTime != lastTick[event.Symbol].StartTime {
 		newKline := core.ConvertToKlineFromWsKline(lastTick[event.Symbol])
 
-		Logger.Info(fmt.Sprintf("%+v", newKline))
+		Logger.Info(fmt.Sprintf("%s %s", event.Symbol, newKline.ToString()))
 		recordNewKline(event.Symbol, &newKline)
 	}
 }

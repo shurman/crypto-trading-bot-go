@@ -3,7 +3,6 @@ package service
 import (
 	"crypto-trading-bot-go/core"
 	"fmt"
-	"log/slog"
 	"os"
 	"sort"
 	"time"
@@ -29,17 +28,17 @@ func CheckOrderFilled(symbol string, k *core.Kline) {
 		if v.GetStatus() == core.ORDER_OPEN {
 			if v.GetEntryPrice() <= currentKline[symbol].High && v.GetEntryPrice() >= currentKline[symbol].Low {
 				v.Fill(currentKline[symbol].CloseTime)
-				slog.Debug(fmt.Sprintf("[%s] filled  %+v", v.GetId(), v))
+				Logger.Debug(fmt.Sprintf("[%s] filled  %+v", v.GetId(), v))
 			}
 		} else if v.GetStatus() == core.ORDER_ENTRY {
 			if v.GetStopProfitPrice() <= currentKline[symbol].High && v.GetStopProfitPrice() >= currentKline[symbol].Low {
 				v.Exit(v.GetStopProfitPrice(), currentKline[symbol].CloseTime)
 				CurrentFund[symbol] += v.GetFinalProfit()
-				slog.Debug(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
+				Logger.Debug(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
 			} else if v.GetStopLossPrice() <= currentKline[symbol].High && v.GetStopLossPrice() >= currentKline[symbol].Low {
 				v.Exit(v.GetStopLossPrice(), currentKline[symbol].CloseTime)
 				CurrentFund[symbol] += v.GetFinalProfit()
-				slog.Debug(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
+				Logger.Debug(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
 			}
 		}
 	}
@@ -69,7 +68,7 @@ func CreateOrder(
 
 	success, isReplaced := orderPut(strategyBO.GetSymbol(), newOrder.GetId(), newOrder)
 	if !success {
-		slog.Warn(strategyBO.GetSymbol() + " Order " + newOrder.GetId() + " not created")
+		Logger.Warn(strategyBO.GetSymbol() + " Order " + newOrder.GetId() + " not created")
 		return
 	}
 
@@ -80,7 +79,7 @@ func CreateOrder(
 		action = "Create"
 	}
 
-	message := fmt.Sprintf("[%s][%s] %s %s %s %f@%f P:%f L:%f",
+	message := fmt.Sprintf("[%s][%s] %s %s %s %f@%f P:%f L:%f  (risk:%fu)",
 		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id),
 		action,
@@ -89,8 +88,9 @@ func CreateOrder(
 		quantity,
 		entry,
 		stopProfit,
-		stopLoss)
-	slog.Debug(message)
+		stopLoss,
+		(entry-stopLoss)*quantity*float64(dir))
+	Logger.Debug(message)
 
 	if sendNotify && core.Config.Slack.Enable {
 		SendSlack(message)
@@ -118,7 +118,7 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 
 	success, isReplaced := orderPut(strategyBO.GetSymbol(), newOrder.GetId(), newOrder)
 	if !success {
-		slog.Warn(strategyBO.GetSymbol() + " Order " + newOrder.GetId() + " not created")
+		Logger.Warn(strategyBO.GetSymbol() + " Order " + newOrder.GetId() + " not created")
 		return
 	}
 	var action string
@@ -130,7 +130,7 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 
 	newOrder.Fill(currentKline[strategyBO.GetSymbol()].CloseTime)
 
-	message := fmt.Sprintf("[%s][%s] %s %s %s %f@%f P:%f L:%f",
+	message := fmt.Sprintf("[%s][%s] %s %s %s %f@%f P:%f L:%f  (risk:%fu)",
 		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id),
 		action,
@@ -139,8 +139,9 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 		quantity,
 		currentKline[strategyBO.GetSymbol()].Close,
 		stopProfit,
-		stopLoss)
-	slog.Debug(message)
+		stopLoss,
+		(currentKline[strategyBO.GetSymbol()].Close-stopLoss)*quantity*float64(dir))
+	Logger.Debug(message)
 
 	if sendNotify && core.Config.Slack.Enable {
 		SendSlack(message)
@@ -177,7 +178,7 @@ func CancelOrder(
 	message := fmt.Sprintf("[%s][%s] cancelled",
 		currentKline[symbol].CloseTime,
 		strategyBO.ToStandardId(_id))
-	slog.Debug(message)
+	Logger.Debug(message)
 
 	if sendNotify && core.Config.Slack.Enable {
 		SendSlack(message)
@@ -239,15 +240,15 @@ func PrintOrderResult(symbol string) {
 		}
 	}
 
-	slog.Warn("=====================================")
-	slog.Warn(fmt.Sprintf("%s Backtesting Result", symbol))
-	slog.Warn("\tLong\t\tShort")
-	slog.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d", winLong, winLong+lossLong, winShort, winShort+lossShort))
-	slog.Warn(fmt.Sprintf("Ratio\t=%3.3f%%\t=%3.3f%%",
+	Logger.Warn("=====================================")
+	Logger.Warn(fmt.Sprintf("%s Backtesting Result", symbol))
+	Logger.Warn("\tLong\t\tShort")
+	Logger.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d", winLong, winLong+lossLong, winShort, winShort+lossShort))
+	Logger.Warn(fmt.Sprintf("Ratio\t=%3.3f%%\t=%3.3f%%",
 		float32(winLong)/float32(winLong+lossLong)*100,
 		float32(winShort)/float32(winShort+lossShort)*100))
-	slog.Warn(fmt.Sprintf("Profit\t$%5.3f\t$%5.3f", profitLong, profitShort))
-	slog.Warn(fmt.Sprintf("Fund\t$%5.3f -> $%5.3f", core.Config.Trading.InitialFund, CurrentFund[symbol]))
+	Logger.Warn(fmt.Sprintf("Profit\t$%5.3f\t$%5.3f", profitLong, profitShort))
+	Logger.Warn(fmt.Sprintf("Fund\t$%5.3f -> $%5.3f", core.Config.Trading.InitialFund, CurrentFund[symbol]))
 }
 
 func ExportOrdersResult(symbol string) {
@@ -264,5 +265,5 @@ func ExportOrdersResult(symbol string) {
 		f.Write([]byte(fmt.Sprintf("%s\n", ordersMap[symbol][k].ToCsv())))
 	}
 
-	slog.Info("Export order list to " + filename)
+	Logger.Info("Export order list to " + filename)
 }

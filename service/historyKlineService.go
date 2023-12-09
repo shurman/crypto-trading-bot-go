@@ -6,7 +6,6 @@ import (
 	"crypto-trading-bot-go/core"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"os"
 	"strings"
@@ -40,9 +39,11 @@ func LoadHistoryKline() {
 			Logger.Debug("Loaded " + fmt.Sprintf("%+v", hKline))
 			recordNewKline(symbol, &hKline)
 		}
+
+		Logger.Info(symbol + " Loaded")
 	}
 
-	Logger.Info("[LoadHistoryKline] History klines loaded.")
+	Logger.Info("[LoadHistoryKline] History klines loaded")
 }
 
 func DownloadRawHistoryKline(symbol string, interval string, startTime int64, limit int64) {
@@ -50,7 +51,7 @@ func DownloadRawHistoryKline(symbol string, interval string, startTime int64, li
 	defer f.Close()
 
 	for {
-		slog.Info(fmt.Sprintf("Downloading %s %d klines from %d", symbol, limit, startTime))
+		Logger.Info(fmt.Sprintf("Downloading %s %d klines from %d", symbol, limit, startTime))
 		response, error := http.Get(fmt.Sprintf("https://fapi.binance.com/fapi/v1/klines?symbol=%s&interval=%s&startTime=%d&limit=%d", symbol, interval, startTime, limit))
 
 		if error != nil {

@@ -8,7 +8,7 @@ import (
 )
 
 //TODO
-//Deploy to server
+//Deploy to server //dockerfile //healthcheck
 
 //Future work
 //state 1,-1 rule rework
@@ -18,14 +18,8 @@ func main() {
 	service.InitStrategyService()
 
 	if core.Config.Trading.Mode == "indicator" {
-		indicatorMode()
+		service.IndicatorMode()
 	} else {
 		service.BacktestingMode()
 	}
-}
-
-func indicatorMode() {
-	service.LoadHistoryKline()
-	go service.InitWsTickService()
-	select {}
 }
