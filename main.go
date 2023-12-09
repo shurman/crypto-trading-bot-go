@@ -8,7 +8,7 @@ import (
 )
 
 //TODO
-//Deploy to server //dockerfile //healthcheck
+//Deploy to server //healthcheck
 
 //Future work
 //state 1,-1 rule rework
