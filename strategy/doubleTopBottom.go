@@ -25,7 +25,7 @@ var (
 )
 
 func init() {
-	service.RegisterStrategyFunc(DoubleTopBottom, "DoubleTopBottom")
+	service.RegisterStrategyFunc(DoubleTopBottom, "DTB")
 }
 
 func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {

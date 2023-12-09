@@ -75,9 +75,9 @@ func CreateOrder(
 
 	var action string
 	if isReplaced {
-		action = "cancel & re-create"
+		action = "Cancel & re-Create"
 	} else {
-		action = "create"
+		action = "Create"
 	}
 
 	message := fmt.Sprintf("[%s][%s] %s %s %s %f@%f P:%f L:%f",
@@ -123,9 +123,9 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 	}
 	var action string
 	if isReplaced {
-		action = "cancel & entry"
+		action = "Cancel & Entry"
 	} else {
-		action = "entry"
+		action = "Entry"
 	}
 
 	newOrder.Fill(currentKline[strategyBO.GetSymbol()].CloseTime)
