@@ -98,7 +98,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		if k1.High > k2.High {
 			service.CreateOrder(
 				bo,
-				genOrderId(symbol),
+				genOrderId(symbol, false),
 				core.ORDER_LONG,
 				getQuantity(symbol),
 				k1.High,
@@ -110,14 +110,18 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		}
 
 	} else if *state == 4 {
-		if service.GetOrderStatus(bo, genOrderId(symbol)) == core.ORDER_ENTRY {
-			//state = 5
+		if service.GetOrderStatus(bo, genOrderId(symbol, false)) == core.ORDER_ENTRY {
+			if phase2 {
+				*state = 5
+			} else {
+				paramReset(symbol)
+			}
 			*mapOrderId[symbol]++
-			paramReset(symbol)
+
 		} else {
 			service.CreateOrder(
 				bo,
-				genOrderId(symbol),
+				genOrderId(symbol, false),
 				core.ORDER_LONG,
 				getQuantity(symbol),
 				k1.High,
@@ -130,13 +134,15 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 	} else if *state == 5 { //phase 2
 		if k1.High < k2.High {
 			*state = 6
+		} else if k1.High > *localHigh+(*localHigh-*localLow)*0.4 {
+			paramReset(symbol)
 		}
 
 	} else if *state == 6 {
 		if k1.High > k2.High {
 			service.CreateOrder(
 				bo,
-				genOrderId(symbol),
+				genOrderId(symbol, true),
 				core.ORDER_LONG,
 				getQuantity(symbol),
 				k1.High,
@@ -145,15 +151,18 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				k1.IsNew,
 			)
 			*state = 7
+		} else if k1.Low < *localLow-(*localHigh-*localLow)*0.4 {
+			paramReset(symbol)
 		}
+
 	} else if *state == 7 {
-		if service.GetOrderStatus(bo, genOrderId(symbol)) == core.ORDER_ENTRY {
+		if service.GetOrderStatus(bo, genOrderId(symbol, true)) == core.ORDER_ENTRY {
 			*mapOrderId[symbol]++
 			paramReset(symbol)
 		} else {
 			service.CreateOrder(
 				bo,
-				genOrderId(symbol),
+				genOrderId(symbol, true),
 				core.ORDER_LONG,
 				getQuantity(symbol),
 				k1.High,
@@ -162,6 +171,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				k1.IsNew,
 			)
 		}
+
 	} else if *state == -1 {
 		if k1.Low < *localLow {
 			*localHigh = 0
@@ -189,7 +199,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		if k1.Low < k2.Low {
 			service.CreateOrder(
 				bo,
-				genOrderId(symbol),
+				genOrderId(symbol, false),
 				core.ORDER_SHORT,
 				getQuantity(symbol),
 				k1.Low,
@@ -201,14 +211,18 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		}
 
 	} else if *state == -4 {
-		if service.GetOrderStatus(bo, genOrderId(symbol)) == core.ORDER_ENTRY { // means filled
-			//state = -5
+		if service.GetOrderStatus(bo, genOrderId(symbol, false)) == core.ORDER_ENTRY { // means filled
+			if false {
+				*state = -5
+			} else {
+				paramReset(symbol)
+			}
 			*mapOrderId[symbol]++
-			paramReset(symbol)
+
 		} else {
 			service.CreateOrder(
 				bo,
-				genOrderId(symbol),
+				genOrderId(symbol, false),
 				core.ORDER_SHORT,
 				getQuantity(symbol),
 				k1.Low,
@@ -218,13 +232,57 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			)
 		}
 
-	}
+	} else if *state == -5 { //phase 2
+		if k1.Low > k2.Low {
+			*state = -6
+		} else if k1.Low < *localLow-(*localHigh-*localLow)*0.4 {
+			paramReset(symbol)
+		}
 
+	} else if *state == -6 {
+		if k1.Low < k2.Low {
+			service.CreateOrder(
+				bo,
+				genOrderId(symbol, true),
+				core.ORDER_SHORT,
+				getQuantity(symbol),
+				k1.Low,
+				k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
+				k1.High,
+				k1.IsNew,
+			)
+			*state = -7
+		} else if k1.High > *localHigh+(*localHigh-*localLow)*0.4 {
+			paramReset(symbol)
+
+		}
+	} else if *state == -7 {
+		if service.GetOrderStatus(bo, genOrderId(symbol, true)) == core.ORDER_ENTRY {
+			*mapOrderId[symbol]++
+			paramReset(symbol)
+		} else {
+			service.CreateOrder(
+				bo,
+				genOrderId(symbol, true),
+				core.ORDER_SHORT,
+				getQuantity(symbol),
+				k1.Low,
+				k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
+				k1.High,
+				k1.IsNew,
+			)
+		}
+	}
 	//slog.Info(fmt.Sprintf("================= state=%d  CurrentFund=%f localHigh=%f localLow=%f", state, service.CurrentFund, localHigh, localLow))
 }
 
-func genOrderId(symbol string) string {
-	return fmt.Sprintf("%s%05d", symbol, *mapOrderId[symbol])
+func genOrderId(symbol string, isPhase2 bool) string {
+	orderId := fmt.Sprintf("%s%05d", symbol, *mapOrderId[symbol])
+
+	if isPhase2 {
+		orderId += "_p2"
+	}
+	return orderId
 }
 
 func getQuantity(symbol string) float64 {
