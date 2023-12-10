@@ -158,25 +158,23 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 
 func ExitOrder(
 	strategyBO *core.StrategyBO,
-	symbol string,
 	_id string,
 ) {
-	order, exists := ordersMap[symbol][strategyBO.ToStandardId(_id)]
+	order, exists := ordersMap[strategyBO.GetSymbol()][strategyBO.ToStandardId(_id)]
 	if !exists {
 		return
 	}
 
-	order.Exit(currentKline[symbol].Close, currentKline[symbol].CloseTime)
-	CurrentFund[symbol] -= order.GetFinalProfit()
+	order.Exit(currentKline[strategyBO.GetSymbol()].Close, currentKline[strategyBO.GetSymbol()].CloseTime)
+	CurrentFund[strategyBO.GetSymbol()] -= order.GetFinalProfit()
 }
 
 func CancelOrder(
 	strategyBO *core.StrategyBO,
-	symbol string,
 	_id string,
 	sendNotify bool,
 ) {
-	order, exists := ordersMap[symbol][strategyBO.ToStandardId(_id)]
+	order, exists := ordersMap[strategyBO.GetSymbol()][strategyBO.ToStandardId(_id)]
 	if !exists {
 		return
 	}
@@ -184,7 +182,7 @@ func CancelOrder(
 	order.Cancel()
 
 	message := fmt.Sprintf("[%s][%s] cancelled",
-		currentKline[symbol].CloseTime,
+		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id))
 	if sendNotify {
 		Logger.Info(message)
@@ -265,8 +263,8 @@ func PrintOrderResult(symbol string) {
 		float64(winShort)/float64(winShort+lossShort)*100,
 		winRate*100,
 		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate)))
-	Logger.Warn(fmt.Sprintf("Profit\t$%5.2f\t$%5.2f", profitLong, profitShort))
-	Logger.Warn(fmt.Sprintf("Fund\t$%5.2f -> $%5.2f", core.Config.Trading.InitialFund, CurrentFund[symbol]))
+	Logger.Warn(fmt.Sprintf("Profit\t$%-8.2f\t$%-8.2f", profitLong, profitShort))
+	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.2f", core.Config.Trading.InitialFund, CurrentFund[symbol]))
 }
 
 func ExportOrdersResult(symbol string) {
