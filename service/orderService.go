@@ -90,7 +90,11 @@ func CreateOrder(
 		stopProfit,
 		stopLoss,
 		(entry-stopLoss)*quantity*float64(dir))
-	Logger.Debug(message)
+	if sendNotify {
+		Logger.Info(message)
+	} else {
+		Logger.Debug(message)
+	}
 
 	if sendNotify && core.Config.Slack.Enable {
 		SendSlack(message)
@@ -141,7 +145,11 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 		stopProfit,
 		stopLoss,
 		(currentKline[strategyBO.GetSymbol()].Close-stopLoss)*quantity*float64(dir))
-	Logger.Debug(message)
+	if sendNotify {
+		Logger.Info(message)
+	} else {
+		Logger.Debug(message)
+	}
 
 	if sendNotify && core.Config.Slack.Enable {
 		SendSlack(message)
@@ -178,7 +186,11 @@ func CancelOrder(
 	message := fmt.Sprintf("[%s][%s] cancelled",
 		currentKline[symbol].CloseTime,
 		strategyBO.ToStandardId(_id))
-	Logger.Debug(message)
+	if sendNotify {
+		Logger.Info(message)
+	} else {
+		Logger.Debug(message)
+	}
 
 	if sendNotify && core.Config.Slack.Enable {
 		SendSlack(message)
