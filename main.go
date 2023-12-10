@@ -9,7 +9,6 @@ import (
 
 //TODO
 //next strategy
-//detect websocket disconnect
 
 //Future work
 //DTB: state 1,-1 rule rework

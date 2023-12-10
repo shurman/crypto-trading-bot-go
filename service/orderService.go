@@ -96,7 +96,7 @@ func CreateOrder(
 		Logger.Debug(message)
 	}
 
-	if sendNotify && core.Config.Slack.Enable {
+	if sendNotify {
 		SendSlack(message)
 	}
 }
@@ -151,7 +151,7 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 		Logger.Debug(message)
 	}
 
-	if sendNotify && core.Config.Slack.Enable {
+	if sendNotify {
 		SendSlack(message)
 	}
 }
@@ -192,7 +192,7 @@ func CancelOrder(
 		Logger.Debug(message)
 	}
 
-	if sendNotify && core.Config.Slack.Enable {
+	if sendNotify {
 		SendSlack(message)
 	}
 }

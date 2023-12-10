@@ -13,33 +13,30 @@ var (
 	currentTick = make(map[string]*futures.WsKline)
 )
 
-func InitWsTickService() {
-	wsKlineHandler := newKlineHandler
+func WsTickService() {
 	errHandler := func(err error) {
 		Logger.Error(err.Error())
 	}
 
-	// doneC, _, err := futures.WsKlineServe(
-	// 	core.Config.Trading.Symbol,
-	// 	core.Config.Trading.Interval,
-	// 	wsKlineHandler,
-	// 	errHandler,
-	// )
-	doneC, _, err := futures.WsCombinedKlineServe(
-		genSymbolsMap(),
-		wsKlineHandler,
-		errHandler,
-	)
-	if err != nil {
-		Logger.Error(err.Error())
-		return
-	}
+	for {
+		doneC, _, err := futures.WsCombinedKlineServe(
+			genSymbolsMap(),
+			wsKlineHandler,
+			errHandler,
+		)
+		if err != nil {
+			Logger.Error(err.Error())
+			SendSlack("Websocket service terminated")
+			return
+		}
 
-	Logger.Info("[InitWsTickService] Initialized")
-	<-doneC
+		Logger.Info("[WsTickService] Initialized")
+		<-doneC
+		Logger.Warn("[WsTickService] Restarting")
+	}
 }
 
-func newKlineHandler(event *futures.WsKlineEvent) {
+func wsKlineHandler(event *futures.WsKlineEvent) {
 	Logger.Debug("ws event: " + fmt.Sprintf("%+v", event.Kline))
 
 	lastTick[event.Symbol] = currentTick[event.Symbol]

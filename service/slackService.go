@@ -10,6 +10,10 @@ import (
 )
 
 func SendSlack(message string) {
+	if !core.Config.Slack.Enable {
+		return
+	}
+
 	jsonData := []byte("{'channel': '" + core.Config.Slack.Channel + "', 'text': '" + message + "'}")
 
 	response, error := http.Post(core.Config.Slack.Webhook, "application/json", bytes.NewBuffer(jsonData))
