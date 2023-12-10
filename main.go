@@ -8,7 +8,9 @@ import (
 )
 
 //TODO
+//DTB: tune entry rule / cancel order if out of bound
 //next strategy
+//binance create order
 
 //Future work
 //DTB: state 1,-1 rule rework

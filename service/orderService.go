@@ -254,13 +254,19 @@ func PrintOrderResult(symbol string) {
 
 	Logger.Warn("=====================================")
 	Logger.Warn(fmt.Sprintf("%s Backtesting Result", symbol))
-	Logger.Warn("\tLong\t\tShort")
-	Logger.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d", winLong, winLong+lossLong, winShort, winShort+lossShort))
-	Logger.Warn(fmt.Sprintf("Ratio\t=%3.3f%%\t=%3.3f%%",
-		float32(winLong)/float32(winLong+lossLong)*100,
-		float32(winShort)/float32(winShort+lossShort)*100))
-	Logger.Warn(fmt.Sprintf("Profit\t$%5.3f\t$%5.3f", profitLong, profitShort))
-	Logger.Warn(fmt.Sprintf("Fund\t$%5.3f -> $%5.3f", core.Config.Trading.InitialFund, CurrentFund[symbol]))
+	Logger.Warn("\tLong\t\tShort\t\tTotal")
+	Logger.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d\t%5d/%5d",
+		winLong, winLong+lossLong,
+		winShort, winShort+lossShort,
+		winLong+winShort, winLong+lossLong+winShort+lossShort))
+	winRate := float64(winLong+winShort) / float64(winLong+lossLong+winShort+lossShort)
+	Logger.Warn(fmt.Sprintf("Ratio\t=%.3f%%\t=%.3f%%\t=%.3f%% (ev:%.3f)",
+		float64(winLong)/float64(winLong+lossLong)*100,
+		float64(winShort)/float64(winShort+lossShort)*100,
+		winRate*100,
+		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate)))
+	Logger.Warn(fmt.Sprintf("Profit\t$%5.2f\t$%5.2f", profitLong, profitShort))
+	Logger.Warn(fmt.Sprintf("Fund\t$%5.2f -> $%5.2f", core.Config.Trading.InitialFund, CurrentFund[symbol]))
 }
 
 func ExportOrdersResult(symbol string) {
