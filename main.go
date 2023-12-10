@@ -8,10 +8,11 @@ import (
 )
 
 //TODO
-//Deploy to server //healthcheck
+//next strategy
+//detect websocket disconnect
 
 //Future work
-//state 1,-1 rule rework
+//DTB: state 1,-1 rule rework
 //multiple interval(?)
 
 func main() {
