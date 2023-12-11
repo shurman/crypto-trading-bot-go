@@ -20,6 +20,7 @@ var (
 	lastKline1 = make(map[string]*core.Kline)
 	lastKline2 = make(map[string]*core.Kline)
 	lastKline3 = make(map[string]*core.Kline)
+	lastKline4 = make(map[string]*core.Kline)
 
 	phase2 = true
 )
@@ -35,20 +36,22 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		return
 	}
 
+	lastKline4[symbol] = lastKline3[symbol]
 	lastKline3[symbol] = lastKline2[symbol]
 	lastKline2[symbol] = lastKline1[symbol]
 	lastKline1[symbol] = nextKline
 
-	if lastKline2[symbol] == nil {
+	if lastKline3[symbol] == nil {
 		paramInit(symbol)
 	}
-	if lastKline3[symbol] == nil {
+	if lastKline4[symbol] == nil {
 		return
 	}
 
 	k1 := lastKline1[symbol]
 	k2 := lastKline2[symbol]
 	k3 := lastKline3[symbol]
+	k4 := lastKline4[symbol]
 
 	state := mapState[symbol]
 	borderLow := mapBorderLow[symbol]
@@ -59,13 +62,12 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 	//slog.Info(fmt.Sprintf("[doubleTopBottom] state=%d %s", state, k1.ToString()))
 
 	if *state == 0 {
-		if k1.High > k2.High && k2.High > k3.High && k1.High/k3.High > 1.01 {
-
+		if k1.High > k2.High && k2.High > k3.High && k3.High > k4.High && k1.High/k4.High > 1.02 {
 			*state = 1
 			*localHigh = k1.High
 			*borderLow = k3.Low
-		} else if k1.Low < k2.Low && k2.Low < k3.Low && k1.Low/k3.Low < 0.99 {
 
+		} else if k1.Low < k2.Low && k2.Low < k3.Low && k3.Low < k4.Low && k1.Low/k4.Low < 0.98 {
 			*state = -1
 			*localLow = k1.Low
 			*borderHigh = k3.High
