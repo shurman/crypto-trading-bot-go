@@ -46,12 +46,11 @@ func LoadHistoryKline() {
 	Logger.Info("[LoadHistoryKline] History klines loaded")
 }
 
-func DownloadRawHistoryKline(symbol string, interval string, startTime int64, limit int64) {
+func DownloadRawHistoryKline(symbol string, interval string, startTime int64, limit int) {
 	f, _ := os.OpenFile(symbol+"_"+interval+".txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	defer f.Close()
 
 	for {
-		Logger.Info(fmt.Sprintf("Downloading %s %d klines from %d", symbol, limit, startTime))
 		response, error := http.Get(fmt.Sprintf("https://fapi.binance.com/fapi/v1/klines?symbol=%s&interval=%s&startTime=%d&limit=%d", symbol, interval, startTime, limit))
 
 		if error != nil {
@@ -69,9 +68,10 @@ func DownloadRawHistoryKline(symbol string, interval string, startTime int64, li
 		count := len(json.MustArray())
 		if count <= 1 {
 			break
-		} else if count < 1500 {
+		} else if count < limit {
 			count -= 1
 		}
+		Logger.Info(fmt.Sprintf("Downloaded %s %d klines from %d", symbol, count, startTime))
 
 		for i := 0; i < count; i++ {
 			item := json.GetIndex(i)

@@ -44,7 +44,7 @@ type BacktestingConfigs struct {
 type BacktestingDownloadConfigs struct {
 	Enable           bool  `mapstructure:"enable"`
 	StartTime        int64 `mapstructure:"startTime"`
-	LimitPerDownload int64 `mapstructure:"limitPerDownload"`
+	LimitPerDownload int   `mapstructure:"limitPerDownload"`
 }
 
 type BinanceConfigs struct {
