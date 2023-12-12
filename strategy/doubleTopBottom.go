@@ -65,12 +65,12 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		if k1.High > k2.High && k2.High > k3.High && k3.High > k4.High && k1.High/k4.High > 1.02 {
 			*state = 1
 			*localHigh = k1.High
-			*borderLow = k3.Low
+			*borderLow = k4.Low
 
 		} else if k1.Low < k2.Low && k2.Low < k3.Low && k3.Low < k4.Low && k1.Low/k4.Low < 0.98 {
 			*state = -1
 			*localLow = k1.Low
-			*borderHigh = k3.High
+			*borderHigh = k4.High
 		}
 
 	} else if *state == 1 {
@@ -150,9 +150,9 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 				k1.IsNew,
 			)
 			*state = 7
-		} else if k1.Low < *localLow-(*localHigh-*localLow)*0.4 {
+		} /*else if k1.Low < *localLow-(*localHigh-*localLow)*0.4 {
 			paramReset(symbol)
-		}
+		}*/
 
 	} else if *state == 7 {
 		if service.GetOrderStatus(bo, genOrderId(symbol, true)) == core.ORDER_ENTRY {
@@ -208,7 +208,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 
 	} else if *state == -4 {
 		if service.GetOrderStatus(bo, genOrderId(symbol, false)) == core.ORDER_ENTRY {
-			if false {
+			if phase2 {
 				*state = -5
 			} else {
 				paramReset(symbol)
@@ -249,9 +249,9 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			)
 			*state = -7
 
-		} else if k1.High > *localHigh+(*localHigh-*localLow)*0.4 {
+		} /*else if k1.High > *localHigh+(*localHigh-*localLow)*0.4 {
 			paramReset(symbol)
-		}
+		}*/
 
 	} else if *state == -7 {
 		if service.GetOrderStatus(bo, genOrderId(symbol, true)) == core.ORDER_ENTRY {

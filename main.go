@@ -8,7 +8,7 @@ import (
 )
 
 //TODO
-//DTB: find edge failure case / tune entry rule
+//DTB: find edge failure case
 //next strategy
 //binance create order
 
