@@ -79,7 +79,7 @@ func CreateOrder(
 		action = "Create"
 	}
 
-	message := fmt.Sprintf("[%s][%s] %s %s %s %f@%f P:%f L:%f  (risk:%fu)",
+	message := fmt.Sprintf("[%s] %s | %s %s %s %.2f@%.2f P:%.2f L:%.2f  (risk:%.2fu)",
 		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id),
 		action,
@@ -134,7 +134,7 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 
 	newOrder.Fill(currentKline[strategyBO.GetSymbol()].CloseTime)
 
-	message := fmt.Sprintf("[%s][%s] %s %s %s %f@%f P:%f L:%f  (risk:%fu)",
+	message := fmt.Sprintf("[%s] %s | %s %s %s %.2f@%.2f P:%.2f L:%.2f  (risk:%.2fu)",
 		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id),
 		action,
@@ -181,7 +181,7 @@ func CancelOrder(
 
 	order.Cancel()
 
-	message := fmt.Sprintf("[%s][%s] cancelled",
+	message := fmt.Sprintf("[%s] %s | cancelled",
 		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id))
 	if sendNotify {
