@@ -94,19 +94,19 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		}
 
 	} else if *state == 3 {
-		if k1.High > k2.High {
-			service.CreateOrder(
-				bo,
-				genOrderId(symbol, false),
-				core.ORDER_LONG,
-				getQuantity(symbol),
-				k1.High,
-				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
-				k1.Low,
-				k1.IsNew,
-			)
-			*state = 4
-		}
+		//if k1.High > k2.High {
+		service.CreateOrder(
+			bo,
+			genOrderId(symbol, false),
+			core.ORDER_LONG,
+			getQuantity(symbol),
+			k1.High,
+			k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
+			k1.Low,
+			k1.IsNew,
+		)
+		*state = 4
+		//}
 
 	} else if *state == 4 {
 		if service.GetOrderStatus(bo, genOrderId(symbol, false)) == core.ORDER_ENTRY {
@@ -138,19 +138,20 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		}
 
 	} else if *state == 6 {
-		if k1.High > k2.High {
-			service.CreateOrder(
-				bo,
-				genOrderId(symbol, true),
-				core.ORDER_LONG,
-				getQuantity(symbol),
-				k1.High,
-				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
-				k1.Low,
-				k1.IsNew,
-			)
-			*state = 7
-		} /*else if k1.Low < *localLow-(*localHigh-*localLow)*0.4 {
+		//if k1.High > k2.High {
+		service.CreateOrder(
+			bo,
+			genOrderId(symbol, true),
+			core.ORDER_LONG,
+			getQuantity(symbol),
+			k1.High,
+			k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
+			k1.Low,
+			k1.IsNew,
+		)
+		*state = 7
+		//}
+		/*else if k1.Low < *localLow-(*localHigh-*localLow)*0.4 {
 			paramReset(symbol)
 		}*/
 
@@ -192,19 +193,19 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		}
 
 	} else if *state == -3 {
-		if k1.Low < k2.Low {
-			service.CreateOrder(
-				bo,
-				genOrderId(symbol, false),
-				core.ORDER_SHORT,
-				getQuantity(symbol),
-				k1.Low,
-				k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
-				k1.High,
-				k1.IsNew,
-			)
-			*state = -4
-		}
+		//if k1.Low < k2.Low {
+		service.CreateOrder(
+			bo,
+			genOrderId(symbol, false),
+			core.ORDER_SHORT,
+			getQuantity(symbol),
+			k1.Low,
+			k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
+			k1.High,
+			k1.IsNew,
+		)
+		*state = -4
+		//}
 
 	} else if *state == -4 {
 		if service.GetOrderStatus(bo, genOrderId(symbol, false)) == core.ORDER_ENTRY {
@@ -236,20 +237,21 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		}
 
 	} else if *state == -6 {
-		if k1.Low < k2.Low {
-			service.CreateOrder(
-				bo,
-				genOrderId(symbol, true),
-				core.ORDER_SHORT,
-				getQuantity(symbol),
-				k1.Low,
-				k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
-				k1.High,
-				k1.IsNew,
-			)
-			*state = -7
+		//if k1.Low < k2.Low {
+		service.CreateOrder(
+			bo,
+			genOrderId(symbol, true),
+			core.ORDER_SHORT,
+			getQuantity(symbol),
+			k1.Low,
+			k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
+			k1.High,
+			k1.IsNew,
+		)
+		*state = -7
 
-		} /*else if k1.High > *localHigh+(*localHigh-*localLow)*0.4 {
+		//}
+		/*else if k1.High > *localHigh+(*localHigh-*localLow)*0.4 {
 			paramReset(symbol)
 		}*/
 

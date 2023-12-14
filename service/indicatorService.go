@@ -10,13 +10,13 @@ func IndicatorMode() {
 	LoadHistoryKline()
 	go WsTickService()
 
-	SendSlack("Indicator process started")
-	Logger.Warn("Indicator process started")
+	SendSlack("Indicator Started")
+	Logger.Warn("Indicator Started")
 
 	quitChannel := make(chan os.Signal, 1)
 	signal.Notify(quitChannel, syscall.SIGINT, syscall.SIGTERM)
 	<-quitChannel
 
-	SendSlack("Indicator process terminated")
-	Logger.Warn("Indicator process terminated")
+	SendSlack("Indicator Terminated")
+	Logger.Warn("Indicator Terminated")
 }

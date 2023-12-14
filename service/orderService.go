@@ -79,7 +79,7 @@ func CreateOrder(
 		action = "Create"
 	}
 
-	message := fmt.Sprintf("[%s] %s | %s %s %s %.2f@%.2f P:%.2f L:%.2f  (risk:%.2fu)",
+	message := fmt.Sprintf("[%s] %s | %s %s %s %.4f@%.4f P:%.4f L:%.4f  (risk:%.3fu)",
 		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id),
 		action,
@@ -97,7 +97,17 @@ func CreateOrder(
 	}
 
 	if sendNotify {
-		SendSlack(message)
+		SendSlack(fmt.Sprintf("%s %s %s %.4f@%.4f P:%.4f L:%.4f  (risk:%.3fu) id:%s",
+			strategyBO.GetSymbol(),
+			action,
+			dir.ToString(),
+			quantity,
+			entry,
+			stopProfit,
+			stopLoss,
+			(entry-stopLoss)*quantity*float64(dir),
+			strategyBO.ToStandardId(_id),
+		))
 	}
 }
 
@@ -134,7 +144,7 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 
 	newOrder.Fill(currentKline[strategyBO.GetSymbol()].CloseTime)
 
-	message := fmt.Sprintf("[%s] %s | %s %s %s %.2f@%.2f P:%.2f L:%.2f  (risk:%.2fu)",
+	message := fmt.Sprintf("[%s] %s | %s %s %s %.4f@%.4f P:%.4f L:%.4f  (risk:%.3fu)",
 		currentKline[strategyBO.GetSymbol()].CloseTime,
 		strategyBO.ToStandardId(_id),
 		action,
@@ -152,7 +162,17 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 	}
 
 	if sendNotify {
-		SendSlack(message)
+		SendSlack(fmt.Sprintf("%s %s %s %.4f@%.4f P:%.4f L:%.4f  (risk:%.3fu) id:%s",
+			strategyBO.GetSymbol(),
+			action,
+			dir.ToString(),
+			quantity,
+			currentKline[strategyBO.GetSymbol()].Close,
+			stopProfit,
+			stopLoss,
+			(currentKline[strategyBO.GetSymbol()].Close-stopLoss)*quantity*float64(dir),
+			strategyBO.ToStandardId(_id),
+		))
 	}
 }
 
