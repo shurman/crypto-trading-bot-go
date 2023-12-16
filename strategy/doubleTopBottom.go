@@ -95,16 +95,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 
 	} else if *state == 3 {
 		//if k1.High > k2.High {
-		service.CreateOrder(
-			bo,
-			genOrderId(symbol, false),
-			core.ORDER_LONG,
-			getQuantity(symbol),
-			k1.High,
-			k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
-			k1.Low,
-			k1.IsNew,
-		)
+		createLongOrder(bo, k1, false)
 		*state = 4
 		//}
 
@@ -115,19 +106,10 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			} else {
 				paramReset(symbol)
 			}
-			*mapOrderId[symbol]++
+			incrOrderId(symbol)
 
 		} else {
-			service.CreateOrder(
-				bo,
-				genOrderId(symbol, false),
-				core.ORDER_LONG,
-				getQuantity(symbol),
-				k1.High,
-				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
-				k1.Low,
-				k1.IsNew,
-			)
+			createLongOrder(bo, k1, false)
 		}
 
 	} else if *state == 5 { //phase 2
@@ -139,16 +121,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 
 	} else if *state == 6 {
 		//if k1.High > k2.High {
-		service.CreateOrder(
-			bo,
-			genOrderId(symbol, true),
-			core.ORDER_LONG,
-			getQuantity(symbol),
-			k1.High,
-			k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
-			k1.Low,
-			k1.IsNew,
-		)
+		createLongOrder(bo, k1, true)
 		*state = 7
 		//}
 		/*else if k1.Low < *localLow-(*localHigh-*localLow)*0.4 {
@@ -157,19 +130,10 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 
 	} else if *state == 7 {
 		if service.GetOrderStatus(bo, genOrderId(symbol, true)) == core.ORDER_ENTRY {
-			*mapOrderId[symbol]++
+			incrOrderId(symbol)
 			paramReset(symbol)
 		} else {
-			service.CreateOrder(
-				bo,
-				genOrderId(symbol, true),
-				core.ORDER_LONG,
-				getQuantity(symbol),
-				k1.High,
-				k1.High+(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
-				k1.Low,
-				k1.IsNew,
-			)
+			createLongOrder(bo, k1, true)
 		}
 
 	} else if *state == -1 {
@@ -194,16 +158,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 
 	} else if *state == -3 {
 		//if k1.Low < k2.Low {
-		service.CreateOrder(
-			bo,
-			genOrderId(symbol, false),
-			core.ORDER_SHORT,
-			getQuantity(symbol),
-			k1.Low,
-			k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
-			k1.High,
-			k1.IsNew,
-		)
+		createShortOrder(bo, k1, false)
 		*state = -4
 		//}
 
@@ -214,19 +169,10 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			} else {
 				paramReset(symbol)
 			}
-			*mapOrderId[symbol]++
+			incrOrderId(symbol)
 
 		} else {
-			service.CreateOrder(
-				bo,
-				genOrderId(symbol, false),
-				core.ORDER_SHORT,
-				getQuantity(symbol),
-				k1.Low,
-				k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
-				k1.High,
-				k1.IsNew,
-			)
+			createShortOrder(bo, k1, false)
 		}
 
 	} else if *state == -5 { //phase 2
@@ -238,16 +184,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 
 	} else if *state == -6 {
 		//if k1.Low < k2.Low {
-		service.CreateOrder(
-			bo,
-			genOrderId(symbol, true),
-			core.ORDER_SHORT,
-			getQuantity(symbol),
-			k1.Low,
-			k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
-			k1.High,
-			k1.IsNew,
-		)
+		createShortOrder(bo, k1, true)
 		*state = -7
 
 		//}
@@ -257,19 +194,10 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 
 	} else if *state == -7 {
 		if service.GetOrderStatus(bo, genOrderId(symbol, true)) == core.ORDER_ENTRY {
-			*mapOrderId[symbol]++
+			incrOrderId(symbol)
 			paramReset(symbol)
 		} else {
-			service.CreateOrder(
-				bo,
-				genOrderId(symbol, true),
-				core.ORDER_SHORT,
-				getQuantity(symbol),
-				k1.Low,
-				k1.Low-(k1.High-k1.Low)*core.Config.Trading.ProfitLossRatio,
-				k1.High,
-				k1.IsNew,
-			)
+			createShortOrder(bo, k1, true)
 		}
 	}
 	//slog.Info(fmt.Sprintf("================= state=%d  CurrentFund=%f localHigh=%f localLow=%f", state, service.CurrentFund, localHigh, localLow))
@@ -284,12 +212,42 @@ func genOrderId(symbol string, isPhase2 bool) string {
 	return orderId
 }
 
+func incrOrderId(symbol string) {
+	*mapOrderId[symbol]++
+}
+
 func getQuantity(symbol string) float64 {
 	if core.Config.Trading.EnableAccumulated {
 		return service.CurrentFund[symbol] * core.Config.Trading.SingleRiskRatio / (lastKline1[symbol].High - lastKline1[symbol].Low)
 	} else {
 		return core.Config.Trading.InitialFund * core.Config.Trading.SingleRiskRatio / (lastKline1[symbol].High - lastKline1[symbol].Low)
 	}
+}
+
+func createLongOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
+	service.CreateOrder(
+		bo,
+		genOrderId(bo.GetSymbol(), isPhase2),
+		core.ORDER_LONG,
+		getQuantity(bo.GetSymbol()),
+		kline.High,
+		kline.High+(kline.High-kline.Low)*core.Config.Trading.ProfitLossRatio,
+		kline.Low,
+		kline.IsNew,
+	)
+}
+
+func createShortOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
+	service.CreateOrder(
+		bo,
+		genOrderId(bo.GetSymbol(), isPhase2),
+		core.ORDER_SHORT,
+		getQuantity(bo.GetSymbol()),
+		kline.Low,
+		kline.Low-(kline.High-kline.Low)*core.Config.Trading.ProfitLossRatio,
+		kline.High,
+		kline.IsNew,
+	)
 }
 
 func paramInit(symbol string) {

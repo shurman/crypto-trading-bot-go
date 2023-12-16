@@ -8,7 +8,7 @@ import (
 )
 
 //TODO
-//DTB: 2023/11/23 1930 why short / more buffer for stop loss / find edge failure case
+//DTB: 2023/11/22 1930 why short / find edge failure case / entry rule should base on amplifier
 //next strategy
 //binance create order
 
