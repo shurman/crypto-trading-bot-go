@@ -250,21 +250,36 @@ func PrintOrderResult(symbol string) {
 	profitLong := 0.0
 	profitShort := 0.0
 
+	dropDown := 0.0
+	maxDropDown := 0.0
+
 	for _, v := range ordersMap[symbol] {
 		if v.GetDirection() == core.ORDER_LONG {
 			countLong++
 			if v.GetFinalProfit() > 0 {
 				winLong++
+
+				if dropDown < maxDropDown {
+					maxDropDown = dropDown
+				}
+				dropDown = 0
 			} else {
 				lossLong++
+				dropDown += v.GetFinalProfit()
 			}
 			profitLong += v.GetFinalProfit()
 		} else if v.GetDirection() == core.ORDER_SHORT {
 			countShort++
 			if v.GetFinalProfit() > 0 {
 				winShort++
+
+				if dropDown < maxDropDown {
+					maxDropDown = dropDown
+				}
+				dropDown = 0
 			} else {
 				lossShort++
+				dropDown += v.GetFinalProfit()
 			}
 			profitShort += v.GetFinalProfit()
 		}
@@ -284,7 +299,7 @@ func PrintOrderResult(symbol string) {
 		winRate*100,
 		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate)))
 	Logger.Warn(fmt.Sprintf("Profit\t$%-8.2f\t$%-8.2f", profitLong, profitShort))
-	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.2f", core.Config.Trading.InitialFund, CurrentFund[symbol]))
+	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.2f\t(MDD:%.2f)", core.Config.Trading.InitialFund, CurrentFund[symbol], maxDropDown))
 }
 
 func ExportOrdersResult(symbol string) {

@@ -9,11 +9,12 @@ import (
 
 //TODO
 //DTB: find edge failure case / entry rule should base on amplifier
+//https://www.ptt.cc/bbs/Trading/M.1538318192.A.FBC.html
+//fee calculation
 //next strategy
 //binance create order
 
 //Future work
-//DTB: state 1,-1 rule rework
 //multiple interval(?)
 
 func main() {
