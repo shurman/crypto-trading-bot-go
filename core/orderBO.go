@@ -95,6 +95,10 @@ func (bo *OrderBO) ToCsv() string {
 		bo.finalProfit)
 }
 
+func (bo *OrderBO) IsFilled() bool {
+	return bo.status == ORDER_ENTRY || bo.status == ORDER_EXIT
+}
+
 type OrderStatus string
 
 const (

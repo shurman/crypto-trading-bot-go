@@ -100,7 +100,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		//}
 
 	} else if *state == 4 {
-		if service.GetOrderStatus(bo, genOrderId(symbol, false)) == core.ORDER_ENTRY {
+		if service.GetOrder(bo, genOrderId(symbol, false)).IsFilled() {
 			if phase2 {
 				*state = 5
 			} else {
@@ -129,7 +129,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		}*/
 
 	} else if *state == 7 {
-		if service.GetOrderStatus(bo, genOrderId(symbol, true)) == core.ORDER_ENTRY {
+		if service.GetOrder(bo, genOrderId(symbol, true)).IsFilled() {
 			incrOrderId(symbol)
 			paramReset(symbol)
 		} else {
@@ -163,7 +163,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		//}
 
 	} else if *state == -4 {
-		if service.GetOrderStatus(bo, genOrderId(symbol, false)) == core.ORDER_ENTRY {
+		if service.GetOrder(bo, genOrderId(symbol, false)).IsFilled() {
 			if phase2 {
 				*state = -5
 			} else {
@@ -193,7 +193,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		}*/
 
 	} else if *state == -7 {
-		if service.GetOrderStatus(bo, genOrderId(symbol, true)) == core.ORDER_ENTRY {
+		if service.GetOrder(bo, genOrderId(symbol, true)).IsFilled() {
 			incrOrderId(symbol)
 			paramReset(symbol)
 		} else {

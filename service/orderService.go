@@ -215,13 +215,13 @@ func CancelOrder(
 	}
 }
 
-func GetOrderStatus(strategyBO *core.StrategyBO, id string) core.OrderStatus {
+func GetOrder(strategyBO *core.StrategyBO, id string) *core.OrderBO {
 	order, exists := ordersMap[strategyBO.GetSymbol()][strategyBO.ToStandardId(id)]
 
 	if exists {
-		return order.GetStatus()
+		return order
 	}
-	return core.ORDER_UNKWN
+	return nil
 }
 
 func orderPut(symbol string, id string, newOrder *core.OrderBO) (success bool, isReplaced bool) {
