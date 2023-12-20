@@ -11,6 +11,8 @@ trading:
   singleRiskRatio: 0.04
   profitLossRatio: 1
   enableAccumulated: true
+  feeMakerRate: 0.02
+  feeTakerRate: 0.05
 
   mode: backtesting
 

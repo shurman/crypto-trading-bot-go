@@ -26,8 +26,10 @@ type TradingConfigs struct {
 	SingleRiskRatio   float64  `mapstructure:"singleRiskRatio"`
 	ProfitLossRatio   float64  `mapstructure:"ProfitLossRatio"`
 	EnableAccumulated bool     `mapstructure:"enableAccumulated"`
-	Mode              string   `mapstructure:"mode"`
+	FeeMakerRate      float64  `mapstructure:"feeMakerRate"`
+	FeeTakerRate      float64  `mapstructure:"feeTakerRate"`
 
+	Mode        string             `mapstructure:"mode"`
 	Indicator   IndicatorConfigs   `mapstructure:"indicator"`
 	Backtesting BacktestingConfigs `mapstructure:"backtesting"`
 }

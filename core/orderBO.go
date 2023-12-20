@@ -17,6 +17,7 @@ type OrderBO struct {
 	fillTime    time.Time
 	exitTime    time.Time
 	finalProfit float64
+	fee         float64
 }
 
 func ConstructOrderBO(
@@ -69,15 +70,32 @@ func (bo *OrderBO) GetFinalProfit() float64 {
 	return bo.finalProfit
 }
 
-func (bo *OrderBO) Fill(_time time.Time) {
-	bo.status = ORDER_ENTRY
-	bo.fillTime = _time
+func (bo *OrderBO) GetFee() float64 {
+	return bo.fee
 }
 
-func (bo *OrderBO) Exit(_price float64, _time time.Time) {
+func (bo *OrderBO) Fill(_time time.Time, isTaker bool) {
+	bo.status = ORDER_ENTRY
+	bo.fillTime = _time
+
+	if isTaker {
+		bo.fee = bo.entry * bo.quantity * Config.Trading.FeeTakerRate / 100
+	} else {
+		bo.fee = bo.entry * bo.quantity * Config.Trading.FeeMakerRate / 100
+	}
+}
+
+func (bo *OrderBO) Exit(_price float64, _time time.Time, isTaker bool) {
 	bo.status = ORDER_EXIT
 	bo.exitTime = _time
+
 	bo.finalProfit = (_price - bo.entry) * bo.quantity * float64(bo.dir)
+
+	if isTaker {
+		bo.fee += _price * bo.quantity * Config.Trading.FeeTakerRate / 100
+	} else {
+		bo.fee += _price * bo.quantity * Config.Trading.FeeMakerRate / 100
+	}
 }
 
 func (bo *OrderBO) Cancel() {
@@ -85,14 +103,15 @@ func (bo *OrderBO) Cancel() {
 }
 
 func (bo *OrderBO) ToCsv() string {
-	return fmt.Sprintf("%s,%s,%s,%f,%f,%s,%f",
+	return fmt.Sprintf("%s,%s,%s,%f,%f,%s,%f,%f",
 		bo.fillTime,
 		bo.id,
 		bo.dir.ToString(),
 		bo.entry,
 		bo.quantity,
 		bo.exitTime,
-		bo.finalProfit)
+		bo.finalProfit,
+		bo.fee)
 }
 
 func (bo *OrderBO) IsFilled() bool {

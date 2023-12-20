@@ -27,16 +27,16 @@ func CheckOrderFilled(symbol string, k *core.Kline) {
 	for _, v := range ordersMap[symbol] {
 		if v.GetStatus() == core.ORDER_OPEN {
 			if v.GetEntryPrice() <= currentKline[symbol].High && v.GetEntryPrice() >= currentKline[symbol].Low {
-				v.Fill(currentKline[symbol].CloseTime)
+				v.Fill(currentKline[symbol].CloseTime, false)
 				Logger.Debug(fmt.Sprintf("[%s] filled  %+v", v.GetId(), v))
 			}
 		} else if v.GetStatus() == core.ORDER_ENTRY {
 			if v.GetStopProfitPrice() <= currentKline[symbol].High && v.GetStopProfitPrice() >= currentKline[symbol].Low {
-				v.Exit(v.GetStopProfitPrice(), currentKline[symbol].CloseTime)
+				v.Exit(v.GetStopProfitPrice(), currentKline[symbol].CloseTime, true)
 				CurrentFund[symbol] += v.GetFinalProfit()
 				Logger.Debug(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
 			} else if v.GetStopLossPrice() <= currentKline[symbol].High && v.GetStopLossPrice() >= currentKline[symbol].Low {
-				v.Exit(v.GetStopLossPrice(), currentKline[symbol].CloseTime)
+				v.Exit(v.GetStopLossPrice(), currentKline[symbol].CloseTime, false)
 				CurrentFund[symbol] += v.GetFinalProfit()
 				Logger.Debug(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
 			}
@@ -142,7 +142,7 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 		action = "Entry"
 	}
 
-	newOrder.Fill(currentKline[strategyBO.GetSymbol()].CloseTime)
+	newOrder.Fill(currentKline[strategyBO.GetSymbol()].CloseTime, true)
 
 	message := fmt.Sprintf("[%s] %s | %s %s %s %.4f@%.4f P:%.4f L:%.4f  (risk:%.3fu)",
 		currentKline[strategyBO.GetSymbol()].CloseTime,
@@ -179,13 +179,14 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 func ExitOrder(
 	strategyBO *core.StrategyBO,
 	_id string,
+	isTaker bool,
 ) {
 	order, exists := ordersMap[strategyBO.GetSymbol()][strategyBO.ToStandardId(_id)]
 	if !exists {
 		return
 	}
 
-	order.Exit(currentKline[strategyBO.GetSymbol()].Close, currentKline[strategyBO.GetSymbol()].CloseTime)
+	order.Exit(currentKline[strategyBO.GetSymbol()].Close, currentKline[strategyBO.GetSymbol()].CloseTime, isTaker)
 	CurrentFund[strategyBO.GetSymbol()] -= order.GetFinalProfit()
 }
 
@@ -252,6 +253,7 @@ func PrintOrderResult(symbol string) {
 
 	dropDown := 0.0
 	maxDropDown := 0.0
+	totalFee := 0.0
 
 	for _, v := range ordersMap[symbol] {
 		if v.GetDirection() == core.ORDER_LONG {
@@ -283,6 +285,8 @@ func PrintOrderResult(symbol string) {
 			}
 			profitShort += v.GetFinalProfit()
 		}
+
+		totalFee += v.GetFee()
 	}
 
 	Logger.Warn("=====================================")
@@ -299,7 +303,7 @@ func PrintOrderResult(symbol string) {
 		winRate*100,
 		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate)))
 	Logger.Warn(fmt.Sprintf("Profit\t$%-8.2f\t$%-8.2f", profitLong, profitShort))
-	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.2f\t(MDD:%.2f)", core.Config.Trading.InitialFund, CurrentFund[symbol], maxDropDown))
+	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.2f - fee $%5.3f\t(MDD:%.2f)", core.Config.Trading.InitialFund, CurrentFund[symbol], totalFee, maxDropDown))
 }
 
 func ExportOrdersResult(symbol string) {
