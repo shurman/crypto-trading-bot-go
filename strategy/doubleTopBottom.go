@@ -23,6 +23,9 @@ var (
 	lastKline4 = make(map[string]*core.Kline)
 
 	phase2 = true
+
+	exitRatio        = 0.4
+	borderValidRatio = 0.15
 )
 
 func init() {
@@ -81,23 +84,23 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		} else if k1.Low < *localLow {
 			*localLow = k1.Low
 
-		} else if k1.Low > *localLow+(*localHigh-*localLow)*0.15 {
+		} else if k1.Low > *localLow+(*localHigh-*localLow)*borderValidRatio {
 			*state = 2
 		}
 
 	} else if *state == 2 {
 		if k1.Low < *localLow {
-			*state = 3
+			createLongOrder(bo, k1, false)
+			//*state = 3
+			*state = 4
 
-		} else if k1.High > *localHigh+(*localHigh-*localLow)*0.4 {
+		} else if k1.High > *localHigh+(*localHigh-*localLow)*exitRatio {
 			paramReset(symbol)
 		}
 
 	} else if *state == 3 {
-		//if k1.High > k2.High {
-		createLongOrder(bo, k1, false)
-		*state = 4
-		//}
+		//createLongOrder(bo, k1, false)
+		//*state = 4
 
 	} else if *state == 4 {
 		if service.GetOrder(bo, genOrderId(symbol, false)).IsFilled() {
@@ -114,19 +117,16 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 
 	} else if *state == 5 { //phase 2
 		if k1.High < k2.High {
-			*state = 6
-		} else if k1.High > *localHigh+(*localHigh-*localLow)*0.4 {
+			createLongOrder(bo, k1, true)
+			*state = 7
+			//*state = 6
+		} else if k1.High > *localHigh+(*localHigh-*localLow)*exitRatio {
 			paramReset(symbol)
 		}
 
 	} else if *state == 6 {
-		//if k1.High > k2.High {
-		createLongOrder(bo, k1, true)
-		*state = 7
-		//}
-		/*else if k1.Low < *localLow-(*localHigh-*localLow)*0.4 {
-			paramReset(symbol)
-		}*/
+		// createLongOrder(bo, k1, true)
+		// *state = 7
 
 	} else if *state == 7 {
 		if service.GetOrder(bo, genOrderId(symbol, true)).IsFilled() {
@@ -144,23 +144,23 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		} else if k1.High > *localHigh {
 			*localHigh = k1.High
 
-		} else if k1.High < *localHigh-(*localHigh-*localLow)*0.15 {
+		} else if k1.High < *localHigh-(*localHigh-*localLow)*borderValidRatio {
 			*state = -2
 		}
 
 	} else if *state == -2 {
 		if k1.High > *localHigh {
-			*state = -3
+			createShortOrder(bo, k1, false)
+			*state = -4
+			// *state = -3
 
-		} else if k1.Low < *localLow-(*localHigh-*localLow)*0.4 {
+		} else if k1.Low < *localLow-(*localHigh-*localLow)*exitRatio {
 			paramReset(symbol)
 		}
 
 	} else if *state == -3 {
-		//if k1.Low < k2.Low {
-		createShortOrder(bo, k1, false)
-		*state = -4
-		//}
+		// createShortOrder(bo, k1, false)
+		// *state = -4
 
 	} else if *state == -4 {
 		if service.GetOrder(bo, genOrderId(symbol, false)).IsFilled() {
@@ -177,20 +177,16 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 
 	} else if *state == -5 { //phase 2
 		if k1.Low > k2.Low {
-			*state = -6
-		} else if k1.Low < *localLow-(*localHigh-*localLow)*0.4 {
+			createShortOrder(bo, k1, true)
+			*state = -7
+			// *state = -6
+		} else if k1.Low < *localLow-(*localHigh-*localLow)*exitRatio {
 			paramReset(symbol)
 		}
 
 	} else if *state == -6 {
-		//if k1.Low < k2.Low {
-		createShortOrder(bo, k1, true)
-		*state = -7
-
-		//}
-		/*else if k1.High > *localHigh+(*localHigh-*localLow)*0.4 {
-			paramReset(symbol)
-		}*/
+		// createShortOrder(bo, k1, true)
+		// *state = -7
 
 	} else if *state == -7 {
 		if service.GetOrder(bo, genOrderId(symbol, true)).IsFilled() {

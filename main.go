@@ -8,8 +8,7 @@ import (
 )
 
 //TODO
-//DTB: find edge failure case
-//entry rule should base on amplifier
+//entry rule: 3 continuious candles are out of tunnel
 //https://www.ptt.cc/bbs/Trading/M.1538318192.A.FBC.html
 //binance create order
 
