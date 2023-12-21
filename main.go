@@ -8,7 +8,7 @@ import (
 )
 
 //TODO
-//entry rule: 3 continuious candles are out of tunnel
+//entry rule: 3 continuious candles are out of tunnel //https://github.com/cinar/indicator
 //https://www.ptt.cc/bbs/Trading/M.1538318192.A.FBC.html
 //binance create order
 

@@ -14,47 +14,37 @@ var (
 	mapBorderHigh = make(map[string]*float64)
 	mapLocalHigh  = make(map[string]*float64)
 	mapLocalLow   = make(map[string]*float64)
+	mapOrderId    = make(map[string]*int)
 
-	mapOrderId = make(map[string]*int)
+	mapBBCounter = make(map[string]*int)
 
-	lastKline1 = make(map[string]*core.Kline)
-	lastKline2 = make(map[string]*core.Kline)
-	lastKline3 = make(map[string]*core.Kline)
-	lastKline4 = make(map[string]*core.Kline)
-
-	phase2 = true
-
+	phase2           = true
 	exitRatio        = 0.4
 	borderValidRatio = 0.15
 )
 
 func init() {
 	service.RegisterStrategyFunc(DoubleTopBottom, "DTB")
+
+	//indicator.BollingerBands()
 }
 
 func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 	symbol := bo.GetSymbol()
 
-	if nextKline.High == nextKline.Low {
-		return
-	}
-
-	lastKline4[symbol] = lastKline3[symbol]
-	lastKline3[symbol] = lastKline2[symbol]
-	lastKline2[symbol] = lastKline1[symbol]
-	lastKline1[symbol] = nextKline
-
-	if lastKline3[symbol] == nil {
+	if service.GetKlinesLen(symbol) == 1 {
 		paramInit(symbol)
 	}
-	if lastKline4[symbol] == nil {
+	if service.GetKlinesLen(symbol) < 4 {
 		return
 	}
 
-	k1 := lastKline1[symbol]
-	k2 := lastKline2[symbol]
-	k3 := lastKline3[symbol]
-	k4 := lastKline4[symbol]
+	klines := service.GetRecentKline(4, symbol)
+
+	k1 := klines[3]
+	k2 := klines[2]
+	k3 := klines[1]
+	k4 := klines[0]
 
 	state := mapState[symbol]
 	borderLow := mapBorderLow[symbol]
@@ -212,11 +202,11 @@ func incrOrderId(symbol string) {
 	*mapOrderId[symbol]++
 }
 
-func getQuantity(symbol string) float64 {
+func getQuantity(symbol string, lastKline *core.Kline) float64 {
 	if core.Config.Trading.EnableAccumulated {
-		return service.CurrentFund[symbol] * core.Config.Trading.SingleRiskRatio / (lastKline1[symbol].High - lastKline1[symbol].Low)
+		return service.CurrentFund[symbol] * core.Config.Trading.SingleRiskRatio / (lastKline.High - lastKline.Low)
 	} else {
-		return core.Config.Trading.InitialFund * core.Config.Trading.SingleRiskRatio / (lastKline1[symbol].High - lastKline1[symbol].Low)
+		return core.Config.Trading.InitialFund * core.Config.Trading.SingleRiskRatio / (lastKline.High - lastKline.Low)
 	}
 }
 
@@ -225,7 +215,7 @@ func createLongOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
 		bo,
 		genOrderId(bo.GetSymbol(), isPhase2),
 		core.ORDER_LONG,
-		getQuantity(bo.GetSymbol()),
+		getQuantity(bo.GetSymbol(), kline),
 		kline.High,
 		kline.High+(kline.High-kline.Low)*core.Config.Trading.ProfitLossRatio,
 		kline.Low,
@@ -238,7 +228,7 @@ func createShortOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
 		bo,
 		genOrderId(bo.GetSymbol(), isPhase2),
 		core.ORDER_SHORT,
-		getQuantity(bo.GetSymbol()),
+		getQuantity(bo.GetSymbol(), kline),
 		kline.Low,
 		kline.Low-(kline.High-kline.Low)*core.Config.Trading.ProfitLossRatio,
 		kline.High,
@@ -252,6 +242,7 @@ func paramInit(symbol string) {
 	mapBorderHigh[symbol] = new(float64)
 	mapLocalHigh[symbol] = new(float64)
 	mapLocalLow[symbol] = new(float64)
+	mapBBCounter[symbol] = new(int)
 
 	mapOrderId[symbol] = new(int)
 	*mapOrderId[symbol] = 1
@@ -265,4 +256,5 @@ func paramReset(symbol string) {
 	*mapBorderHigh[symbol] = 0
 	*mapLocalHigh[symbol] = 0
 	*mapLocalLow[symbol] = 9999999.99
+	*mapBBCounter[symbol] = 0
 }

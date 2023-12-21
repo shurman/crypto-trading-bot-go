@@ -7,28 +7,36 @@ import (
 )
 
 var (
-// klineSlice []*core.Kline
-// klineLen   int = 0
+	symbolKlines = make(map[string][]*core.Kline)
 )
 
-// func GetKlineSliceLen() int {
-// 	return klineLen
-// }
+func init() {
+	// for _, symbol := range core.Config.Trading.Symbols {
+	// 	symbolKlines[symbol]
+	// }
+}
 
 func recordNewKline(symbol string, newKline *core.Kline) {
 	CheckOrderFilled(symbol, newKline)
 
-	//klineSlice = append(klineSlice, newKline)
-	//klineLen = len(klineSlice)
+	symbolKlines[symbol] = append(symbolKlines[symbol], newKline)
 
 	Logger.Debug("<- " + fmt.Sprintf("%+v", newKline))
 	NotifyNewKline[symbol] <- newKline
 	<-NotifyAnalyzeDone[symbol]
 }
 
-// func GetLastKline(nth int) *Kline {
-// 	if klineLen-nth < 0 {
-// 		panic("Index out of range")
-// 	}
-// 	return klineSlice[klineLen-nth]
-// }
+func GetKlinesLen(symbol string) int {
+	return len(symbolKlines[symbol])
+}
+
+func GetRecentKline(limit int, symbol string) []*core.Kline {
+	if limit > 30 {
+		Logger.Warn("Cannot load more than 30 klines")
+		return nil
+	} else if GetKlinesLen(symbol)-limit < 0 {
+		Logger.Warn("Index out of range")
+		return nil
+	}
+	return symbolKlines[symbol][GetKlinesLen(symbol)-limit:]
+}
