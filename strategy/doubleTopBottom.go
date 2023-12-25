@@ -5,6 +5,8 @@ import (
 	"crypto-trading-bot-go/core"
 	"crypto-trading-bot-go/service"
 	"fmt"
+
+	"github.com/cinar/indicator"
 	//"log/slog"
 )
 
@@ -21,12 +23,13 @@ var (
 	phase2           = true
 	exitRatio        = 0.4
 	borderValidRatio = 0.15
+
+	klinesLimit      = 20
+	klinesBreakLimit = 6
 )
 
 func init() {
 	service.RegisterStrategyFunc(DoubleTopBottom, "DTB")
-
-	//indicator.BollingerBands()
 }
 
 func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
@@ -35,36 +38,69 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 	if service.GetKlinesLen(symbol) == 1 {
 		paramInit(symbol)
 	}
-	if service.GetKlinesLen(symbol) < 4 {
+	if service.GetKlinesLen(symbol) < klinesLimit {
 		return
 	}
 
-	klines := service.GetRecentKline(4, symbol)
+	klines := service.GetRecentKlines(klinesLimit, symbol)
+	closedKlines := service.GetClosedPrices(klines)
 
-	k1 := klines[3]
-	k2 := klines[2]
-	k3 := klines[1]
-	k4 := klines[0]
+	_, upperBand, lowerBand := indicator.BollingerBands(closedKlines)
+
+	k1 := klines[klinesLimit-1]
+	k2 := klines[klinesLimit-2]
+	//k3 := klines[klinesLimit-3]
+	//k4 := klines[klinesLimit-4]
+	kTail := klines[klinesLimit-klinesBreakLimit]
 
 	state := mapState[symbol]
 	borderLow := mapBorderLow[symbol]
 	borderHigh := mapBorderHigh[symbol]
 	localHigh := mapLocalHigh[symbol]
 	localLow := mapLocalLow[symbol]
+	bbCounter := mapBBCounter[symbol]
 
 	//slog.Info(fmt.Sprintf("[doubleTopBottom] state=%d %s", state, k1.ToString()))
 
 	if *state == 0 {
-		if k1.High > k2.High && k2.High > k3.High && k3.High > k4.High && k1.High/k4.High > 1.02 {
-			*state = 1
-			*localHigh = k1.High
-			*borderLow = k4.Low
+		if k1.High > upperBand[klinesLimit-1] {
+			if *bbCounter < 0 {
+				*bbCounter = 1
+			} else {
+				*bbCounter++
+			}
 
-		} else if k1.Low < k2.Low && k2.Low < k3.Low && k3.Low < k4.Low && k1.Low/k4.Low < 0.98 {
-			*state = -1
-			*localLow = k1.Low
-			*borderHigh = k4.High
+			if *bbCounter == klinesBreakLimit {
+				*state = 1
+				*localHigh = k1.High
+				*borderLow = kTail.Low
+			}
+		} else if k1.Low < lowerBand[klinesLimit-1] {
+			if *bbCounter > 0 {
+				*bbCounter = -1
+			} else {
+				*bbCounter--
+			}
+
+			if *bbCounter == -klinesBreakLimit {
+				*state = -1
+				*localLow = k1.Low
+				*borderHigh = kTail.High
+			}
+		} else {
+			*bbCounter = 0
 		}
+
+		// if k1.High > k2.High && k2.High > k3.High && k3.High > k4.High && k1.High/k4.High > 1.02 {
+		// 	*state = 1
+		// 	*localHigh = k1.High
+		// 	*borderLow = k4.Low
+
+		// } else if k1.Low < k2.Low && k2.Low < k3.Low && k3.Low < k4.Low && k1.Low/k4.Low < 0.98 {
+		// 	*state = -1
+		// 	*localLow = k1.Low
+		// 	*borderHigh = k4.High
+		// }
 
 	} else if *state == 1 {
 		if k1.High > *localHigh {
@@ -211,6 +247,10 @@ func getQuantity(symbol string, lastKline *core.Kline) float64 {
 }
 
 func createLongOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
+	if kline.High == kline.Low {
+		return
+	}
+
 	service.CreateOrder(
 		bo,
 		genOrderId(bo.GetSymbol(), isPhase2),
@@ -224,6 +264,10 @@ func createLongOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
 }
 
 func createShortOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
+	if kline.High == kline.Low {
+		return
+	}
+
 	service.CreateOrder(
 		bo,
 		genOrderId(bo.GetSymbol(), isPhase2),

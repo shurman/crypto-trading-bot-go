@@ -30,7 +30,7 @@ func GetKlinesLen(symbol string) int {
 	return len(symbolKlines[symbol])
 }
 
-func GetRecentKline(limit int, symbol string) []*core.Kline {
+func GetRecentKlines(limit int, symbol string) []*core.Kline {
 	if limit > 30 {
 		Logger.Warn("Cannot load more than 30 klines")
 		return nil
@@ -39,4 +39,13 @@ func GetRecentKline(limit int, symbol string) []*core.Kline {
 		return nil
 	}
 	return symbolKlines[symbol][GetKlinesLen(symbol)-limit:]
+}
+
+func GetClosedPrices(rawKlines []*core.Kline) []float64 {
+	var closedKlines []float64
+	for _, kline := range rawKlines {
+		closedKlines = append(closedKlines, kline.Close)
+	}
+
+	return closedKlines
 }
