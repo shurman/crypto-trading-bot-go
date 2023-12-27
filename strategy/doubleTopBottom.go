@@ -5,6 +5,7 @@ import (
 	"crypto-trading-bot-go/core"
 	"crypto-trading-bot-go/service"
 	"fmt"
+	"math"
 
 	"github.com/cinar/indicator"
 	//"log/slog"
@@ -25,7 +26,7 @@ var (
 	borderValidRatio = 0.15
 
 	klinesLimit      = 20
-	klinesBreakLimit = 6
+	klinesBreakLimit = 7
 )
 
 func init() {
@@ -110,6 +111,9 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		} else if k1.Low < *localLow {
 			*localLow = k1.Low
 
+		} else if k1.Low < *borderLow {
+			paramReset(symbol)
+
 		} else if k1.Low > *localLow+(*localHigh-*localLow)*borderValidRatio {
 			*state = 2
 		}
@@ -169,6 +173,9 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 
 		} else if k1.High > *localHigh {
 			*localHigh = k1.High
+
+		} else if k1.High > *borderHigh {
+			paramReset(symbol)
 
 		} else if k1.High < *localHigh-(*localHigh-*localLow)*borderValidRatio {
 			*state = -2
@@ -238,11 +245,13 @@ func incrOrderId(symbol string) {
 	*mapOrderId[symbol]++
 }
 
-func getQuantity(symbol string, lastKline *core.Kline) float64 {
+func getQuantity(symbol string, entryPrice float64, stopLossPrice float64) float64 {
+	priceDistance := math.Abs(entryPrice - stopLossPrice)
+
 	if core.Config.Trading.EnableAccumulated {
-		return service.CurrentFund[symbol] * core.Config.Trading.SingleRiskRatio / (lastKline.High - lastKline.Low)
+		return service.CurrentFund[symbol] * core.Config.Trading.SingleRiskRatio / priceDistance
 	} else {
-		return core.Config.Trading.InitialFund * core.Config.Trading.SingleRiskRatio / (lastKline.High - lastKline.Low)
+		return core.Config.Trading.InitialFund * core.Config.Trading.SingleRiskRatio / priceDistance
 	}
 }
 
@@ -255,7 +264,7 @@ func createLongOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
 		bo,
 		genOrderId(bo.GetSymbol(), isPhase2),
 		core.ORDER_LONG,
-		getQuantity(bo.GetSymbol(), kline),
+		getQuantity(bo.GetSymbol(), kline.High, kline.Low),
 		kline.High,
 		kline.High+(kline.High-kline.Low)*core.Config.Trading.ProfitLossRatio,
 		kline.Low,
@@ -272,7 +281,7 @@ func createShortOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
 		bo,
 		genOrderId(bo.GetSymbol(), isPhase2),
 		core.ORDER_SHORT,
-		getQuantity(bo.GetSymbol(), kline),
+		getQuantity(bo.GetSymbol(), kline.Low, kline.High),
 		kline.Low,
 		kline.Low-(kline.High-kline.Low)*core.Config.Trading.ProfitLossRatio,
 		kline.High,
