@@ -25,8 +25,9 @@ var (
 	exitRatio        = 0.4
 	borderValidRatio = 0.15
 
-	klinesLimit      = 20
-	klinesBreakLimit = 7
+	klinesBreakBase  = 8
+	klinesBreakLimit = 5
+	klinesLimit      = 20 + klinesBreakBase + 1
 )
 
 func init() {
@@ -52,46 +53,60 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 	k2 := klines[klinesLimit-2]
 	//k3 := klines[klinesLimit-3]
 	//k4 := klines[klinesLimit-4]
-	kTail := klines[klinesLimit-klinesBreakLimit]
+	kTail := klines[klinesLimit-klinesBreakBase]
 
 	state := mapState[symbol]
 	borderLow := mapBorderLow[symbol]
 	borderHigh := mapBorderHigh[symbol]
 	localHigh := mapLocalHigh[symbol]
 	localLow := mapLocalLow[symbol]
-	bbCounter := mapBBCounter[symbol]
+	//bbCounter := mapBBCounter[symbol]
 
 	//slog.Info(fmt.Sprintf("[doubleTopBottom] state=%d %s", state, k1.ToString()))
 
 	if *state == 0 {
-		if k1.High > upperBand[klinesLimit-1] {
-			if *bbCounter < 0 {
-				*bbCounter = 1
-			} else {
-				*bbCounter++
-			}
-
-			if *bbCounter == klinesBreakLimit {
-				*state = 1
-				*localHigh = k1.High
-				*borderLow = kTail.Low
-			}
-		} else if k1.Low < lowerBand[klinesLimit-1] {
-			if *bbCounter > 0 {
-				*bbCounter = -1
-			} else {
-				*bbCounter--
-			}
-
-			if *bbCounter == -klinesBreakLimit {
-				*state = -1
-				*localLow = k1.Low
-				*borderHigh = kTail.High
-			}
-		} else {
-			*bbCounter = 0
+		//========3========
+		countBreakUp, countBreakDown := countBreakingKlines(closedKlines[klinesLimit-klinesBreakBase:], upperBand[klinesLimit-klinesBreakBase:], lowerBand[klinesLimit-klinesBreakBase:])
+		if countBreakUp >= klinesBreakLimit {
+			*state = 1
+			*localHigh = k1.High
+			*borderLow = kTail.Low
+		} else if countBreakDown >= klinesBreakLimit {
+			*state = -1
+			*localLow = k1.Low
+			*borderHigh = kTail.High
 		}
 
+		//========2========
+		// if k1.High > upperBand[klinesLimit-1] {
+		// 	if *bbCounter < 0 {
+		// 		*bbCounter = 1
+		// 	} else {
+		// 		*bbCounter++
+		// 	}
+
+		// 	if *bbCounter == klinesBreakLimit {
+		// 		*state = 1
+		// 		*localHigh = k1.High
+		// 		*borderLow = kTail.Low
+		// 	}
+		// } else if k1.Low < lowerBand[klinesLimit-1] {
+		// 	if *bbCounter > 0 {
+		// 		*bbCounter = -1
+		// 	} else {
+		// 		*bbCounter--
+		// 	}
+
+		// 	if *bbCounter == -klinesBreakLimit {
+		// 		*state = -1
+		// 		*localLow = k1.Low
+		// 		*borderHigh = kTail.High
+		// 	}
+		// } else {
+		// 	*bbCounter = 0
+		// }
+
+		//========1========
 		// if k1.High > k2.High && k2.High > k3.High && k3.High > k4.High && k1.High/k4.High > 1.02 {
 		// 	*state = 1
 		// 	*localHigh = k1.High
@@ -310,4 +325,19 @@ func paramReset(symbol string) {
 	*mapLocalHigh[symbol] = 0
 	*mapLocalLow[symbol] = 9999999.99
 	*mapBBCounter[symbol] = 0
+}
+
+func countBreakingKlines(closedKline []float64, upperBand []float64, lowerBand []float64) (int, int) {
+	countBreakUp := 0
+	countBreakDown := 0
+
+	for idx, price := range closedKline {
+		if price > upperBand[idx] {
+			countBreakUp += 1
+		} else if price < lowerBand[idx] {
+			countBreakDown += 1
+		}
+	}
+
+	return countBreakUp, countBreakDown
 }

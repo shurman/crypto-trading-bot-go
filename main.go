@@ -8,8 +8,7 @@ import (
 )
 
 //TODO
-//entry: 統計幾根突破通道(?
-//Backup  入場後被震盪掃出場: 找近幾根最高(低)作為停損點 //進場點偷點
+//Backup  入場後被震盪掃出場: 找近幾根最高(低)作為停損點
 
 //https://www.ptt.cc/bbs/Trading/M.1538318192.A.FBC.html
 //binance create order
