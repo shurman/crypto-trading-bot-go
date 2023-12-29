@@ -24,6 +24,7 @@ var (
 	phase2           = true
 	exitRatio        = 0.4
 	borderValidRatio = 0.15
+	maxFeePerTrade   = 2.0
 
 	klinesBreakBase  = 8
 	klinesBreakLimit = 5
@@ -148,7 +149,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		//*state = 4
 
 	} else if *state == 4 {
-		if service.GetOrder(bo, genOrderId(symbol, false)).IsFilled() {
+		if service.GetOrder(bo, genOrderId(symbol, false)).IsExistedAndFilled() {
 			if phase2 {
 				*state = 5
 			} else {
@@ -174,7 +175,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		// *state = 7
 
 	} else if *state == 7 {
-		if service.GetOrder(bo, genOrderId(symbol, true)).IsFilled() {
+		if service.GetOrder(bo, genOrderId(symbol, true)).IsExistedAndFilled() {
 			incrOrderId(symbol)
 			paramReset(symbol)
 		} else {
@@ -211,7 +212,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		// *state = -4
 
 	} else if *state == -4 {
-		if service.GetOrder(bo, genOrderId(symbol, false)).IsFilled() {
+		if service.GetOrder(bo, genOrderId(symbol, false)).IsExistedAndFilled() {
 			if phase2 {
 				*state = -5
 			} else {
@@ -237,7 +238,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		// *state = -7
 
 	} else if *state == -7 {
-		if service.GetOrder(bo, genOrderId(symbol, true)).IsFilled() {
+		if service.GetOrder(bo, genOrderId(symbol, true)).IsExistedAndFilled() {
 			incrOrderId(symbol)
 			paramReset(symbol)
 		} else {
@@ -261,17 +262,16 @@ func incrOrderId(symbol string) {
 }
 
 func getQuantity(symbol string, entryPrice float64, stopLossPrice float64) float64 {
-	priceDistance := math.Abs(entryPrice - stopLossPrice)
-
-	if core.Config.Trading.EnableAccumulated {
-		return service.CurrentFund[symbol] * core.Config.Trading.SingleRiskRatio / priceDistance
-	} else {
-		return core.Config.Trading.InitialFund * core.Config.Trading.SingleRiskRatio / priceDistance
-	}
+	return service.GetRiskPerTrade(symbol) / math.Abs(entryPrice-stopLossPrice)
 }
 
 func createLongOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
 	if kline.High == kline.Low {
+		return
+	}
+
+	//Prevent fee exceeding limit
+	if kline.High-kline.Low < kline.High*(core.Config.Trading.FeeTakerRate/100)*service.GetRiskPerTrade(bo.GetSymbol())/maxFeePerTrade {
 		return
 	}
 
@@ -289,6 +289,10 @@ func createLongOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
 
 func createShortOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
 	if kline.High == kline.Low {
+		return
+	}
+
+	if kline.High-kline.Low < kline.Low*(core.Config.Trading.FeeTakerRate/100)*service.GetRiskPerTrade(bo.GetSymbol())/maxFeePerTrade {
 		return
 	}
 

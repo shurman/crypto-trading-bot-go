@@ -114,7 +114,11 @@ func (bo *OrderBO) ToCsv() string {
 		bo.fee)
 }
 
-func (bo *OrderBO) IsFilled() bool {
+func (bo *OrderBO) IsExistedAndFilled() bool {
+	if bo == nil {
+		return false
+	}
+
 	return bo.status == ORDER_ENTRY || bo.status == ORDER_EXIT
 }
 

@@ -12,12 +12,12 @@ var (
 	ordersMap    = make(map[string](map[string]*core.OrderBO))
 	currentKline = make(map[string]*core.Kline)
 
-	CurrentFund = make(map[string]float64)
+	currentFund = make(map[string]float64)
 )
 
 func init() {
 	for _, symbol := range core.Config.Trading.Symbols {
-		CurrentFund[symbol] = core.Config.Trading.InitialFund
+		currentFund[symbol] = core.Config.Trading.InitialFund
 	}
 }
 
@@ -33,11 +33,11 @@ func CheckOrderFilled(symbol string, k *core.Kline) {
 		} else if v.GetStatus() == core.ORDER_ENTRY {
 			if v.GetStopProfitPrice() <= currentKline[symbol].High && v.GetStopProfitPrice() >= currentKline[symbol].Low {
 				v.Exit(v.GetStopProfitPrice(), currentKline[symbol].CloseTime, true)
-				CurrentFund[symbol] += v.GetFinalProfit()
+				currentFund[symbol] += v.GetFinalProfit()
 				Logger.Debug(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
 			} else if v.GetStopLossPrice() <= currentKline[symbol].High && v.GetStopLossPrice() >= currentKline[symbol].Low {
 				v.Exit(v.GetStopLossPrice(), currentKline[symbol].CloseTime, false)
-				CurrentFund[symbol] += v.GetFinalProfit()
+				currentFund[symbol] += v.GetFinalProfit()
 				Logger.Debug(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
 			}
 		}
@@ -187,7 +187,7 @@ func ExitOrder(
 	}
 
 	order.Exit(currentKline[strategyBO.GetSymbol()].Close, currentKline[strategyBO.GetSymbol()].CloseTime, isTaker)
-	CurrentFund[strategyBO.GetSymbol()] -= order.GetFinalProfit()
+	currentFund[strategyBO.GetSymbol()] -= order.GetFinalProfit()
 }
 
 func CancelOrder(
@@ -239,6 +239,14 @@ func orderPut(symbol string, id string, newOrder *core.OrderBO) (success bool, i
 
 	ordersMap[symbol][id] = newOrder
 	return true, false
+}
+
+func GetRiskPerTrade(symbol string) float64 {
+	if core.Config.Trading.EnableAccumulated {
+		return currentFund[symbol] * core.Config.Trading.SingleRiskRatio
+	} else {
+		return core.Config.Trading.InitialFund * core.Config.Trading.SingleRiskRatio
+	}
 }
 
 func PrintOrderResult(symbol string) {
@@ -303,7 +311,7 @@ func PrintOrderResult(symbol string) {
 		winRate*100,
 		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate)))
 	Logger.Warn(fmt.Sprintf("Profit\t$%-8.2f\t$%-8.2f", profitLong, profitShort))
-	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.2f - fee $%5.3f\t(MDD:%.2f)", core.Config.Trading.InitialFund, CurrentFund[symbol], totalFee, maxDropDown))
+	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.2f - fee $%5.3f\t(MDD:%.2f)", core.Config.Trading.InitialFund, currentFund[symbol], totalFee, maxDropDown))
 }
 
 func ExportOrdersResult(symbol string) {
