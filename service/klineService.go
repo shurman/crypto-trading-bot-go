@@ -31,7 +31,7 @@ func GetKlinesLen(symbol string) int {
 }
 
 func GetRecentKlines(limit int, symbol string) []*core.Kline {
-	if limit > 30 {
+	if limit > 40 {
 		Logger.Warn("Cannot load more than 30 klines")
 		return nil
 	} else if GetKlinesLen(symbol)-limit < 0 {

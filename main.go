@@ -8,7 +8,7 @@ import (
 )
 
 //TODO
-//Backup  入場後被震盪掃出場: 找近幾根最高(低)作為停損點 //same quantity
+//入場後被震盪掃出場: 找近幾根最高(低)作為停損點
 
 //https://www.ptt.cc/bbs/Trading/M.1538318192.A.FBC.html
 //binance create order

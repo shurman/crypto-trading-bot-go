@@ -26,8 +26,8 @@ var (
 	borderValidRatio = 0.15
 	maxFeePerTrade   = 2.0
 
-	klinesBreakBase  = 8
-	klinesBreakLimit = 5
+	klinesBreakBase  = 13
+	klinesBreakLimit = 7
 	klinesLimit      = 20 + klinesBreakBase + 1
 )
 
