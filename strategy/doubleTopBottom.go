@@ -24,7 +24,7 @@ var (
 	phase2           = true
 	exitRatio        = 0.4
 	borderValidRatio = 0.15
-	maxFeePerTrade   = 2.0
+	maxFeeRatio      = 0.16
 
 	klinesBreakBase  = 13
 	klinesBreakLimit = 7
@@ -271,7 +271,7 @@ func createLongOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
 	}
 
 	//Prevent fee exceeding limit
-	if kline.High-kline.Low < kline.High*(core.Config.Trading.FeeTakerRate/100)*service.GetRiskPerTrade(bo.GetSymbol())/maxFeePerTrade {
+	if kline.High-kline.Low < kline.High*(core.Config.Trading.FeeTakerRate/100)/maxFeeRatio {
 		return
 	}
 
@@ -292,7 +292,7 @@ func createShortOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
 		return
 	}
 
-	if kline.High-kline.Low < kline.Low*(core.Config.Trading.FeeTakerRate/100)*service.GetRiskPerTrade(bo.GetSymbol())/maxFeePerTrade {
+	if kline.High-kline.Low < kline.Low*(core.Config.Trading.FeeTakerRate/100)/maxFeeRatio {
 		return
 	}
 
