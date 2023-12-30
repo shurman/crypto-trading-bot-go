@@ -33,11 +33,11 @@ func CheckOrderFilled(symbol string, k *core.Kline) {
 		} else if v.GetStatus() == core.ORDER_ENTRY {
 			if v.GetStopProfitPrice() <= currentKline[symbol].High && v.GetStopProfitPrice() >= currentKline[symbol].Low {
 				v.Exit(v.GetStopProfitPrice(), currentKline[symbol].CloseTime, true)
-				currentFund[symbol] += v.GetFinalProfit()
+				currentFund[symbol] += v.GetFinalProfit() - v.GetFee()
 				Logger.Debug(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
 			} else if v.GetStopLossPrice() <= currentKline[symbol].High && v.GetStopLossPrice() >= currentKline[symbol].Low {
 				v.Exit(v.GetStopLossPrice(), currentKline[symbol].CloseTime, false)
-				currentFund[symbol] += v.GetFinalProfit()
+				currentFund[symbol] += v.GetFinalProfit() - v.GetFee()
 				Logger.Debug(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
 			}
 		}
@@ -311,7 +311,7 @@ func PrintOrderResult(symbol string) string {
 		winRate*100,
 		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate)))
 	Logger.Warn(fmt.Sprintf("Profit\t$%-8.2f\t$%-8.2f", profitLong, profitShort))
-	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.2f - fee $%5.3f\t(MDD:%.2f)",
+	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.2f (incl. fee $%5.3f)\t(MDD:%.2f)",
 		core.Config.Trading.InitialFund,
 		currentFund[symbol],
 		totalFee,
@@ -322,7 +322,7 @@ func PrintOrderResult(symbol string) string {
 		winRate*100,
 		winLong+lossLong+winShort+lossShort,
 		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate),
-		currentFund[symbol],
+		currentFund[symbol]+totalFee,
 		-totalFee)
 }
 
