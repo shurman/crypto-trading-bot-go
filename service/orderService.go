@@ -249,7 +249,7 @@ func GetRiskPerTrade(symbol string) float64 {
 	}
 }
 
-func PrintOrderResult(symbol string) {
+func PrintOrderResult(symbol string) string {
 	countLong := 0
 	countShort := 0
 	winLong := 0
@@ -311,11 +311,23 @@ func PrintOrderResult(symbol string) {
 		winRate*100,
 		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate)))
 	Logger.Warn(fmt.Sprintf("Profit\t$%-8.2f\t$%-8.2f", profitLong, profitShort))
-	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.2f - fee $%5.3f\t(MDD:%.2f)", core.Config.Trading.InitialFund, currentFund[symbol], totalFee, maxDropDown))
+	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.2f - fee $%5.3f\t(MDD:%.2f)",
+		core.Config.Trading.InitialFund,
+		currentFund[symbol],
+		totalFee,
+		maxDropDown))
+
+	return fmt.Sprintf("%s,%.3f%%,%5d,%.3f,%6.2f,%5.3f\n",
+		symbol,
+		winRate*100,
+		winLong+lossLong+winShort+lossShort,
+		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate),
+		currentFund[symbol],
+		-totalFee)
 }
 
 func ExportOrdersResult(symbol string) {
-	filename := time.Now().Format("20060102150405") + "_" + symbol + "_report.csv"
+	filename := time.Now().Format("20060102150405") + "_" + symbol + "_orders.csv"
 	f, _ := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	var orderKeys []string

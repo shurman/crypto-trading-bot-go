@@ -9,6 +9,7 @@ import (
 
 //TODO
 //入場後被震盪掃出場: 找近幾根最高(低)作為停損點
+//fix: max fee should based on risk
 
 //https://www.ptt.cc/bbs/Trading/M.1538318192.A.FBC.html
 //binance create order

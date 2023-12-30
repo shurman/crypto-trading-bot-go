@@ -2,9 +2,13 @@ package service
 
 import (
 	"crypto-trading-bot-go/core"
+	"os"
+	"time"
 )
 
 func BacktestingMode() {
+	filename := time.Now().Format("20060102150405") + "_reports.csv"
+
 	for _, symbol := range core.Config.Trading.Symbols {
 		if core.Config.Trading.Backtesting.Download.Enable {
 			DownloadRawHistoryKline(
@@ -16,8 +20,13 @@ func BacktestingMode() {
 
 		LoadRawHistoryKline(symbol, core.Config.Trading.Interval)
 
-		PrintOrderResult(symbol)
-		if core.Config.Trading.Backtesting.ExportCsv {
+		summary := PrintOrderResult(symbol)
+		if core.Config.Trading.Backtesting.ExportCsv.Reports {
+			f, _ := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			f.Write([]byte(summary))
+		}
+
+		if core.Config.Trading.Backtesting.ExportCsv.Orders {
 			ExportOrdersResult(symbol)
 		}
 	}

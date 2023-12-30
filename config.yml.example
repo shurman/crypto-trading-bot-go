@@ -19,7 +19,9 @@ trading:
   indicator:
     startFromKlines: 50
   backtesting:
-    exportCsv: true
+    exportCsv:
+      orders: false
+      reports: false
     download:
       enable: false
       startTime: 1500000000000
