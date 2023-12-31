@@ -105,7 +105,7 @@ func DownloadRawHistoryKline(symbol string, interval string, startTime int64, li
 			startTime = kline.CloseTime
 		}
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(800 * time.Millisecond)
 	}
 }
 

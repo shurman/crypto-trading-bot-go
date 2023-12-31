@@ -125,7 +125,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 	} else if *state == 1 {
 		if k1.High > *localHigh {
 			*localHigh = k1.High
-			*localLow = 9999999.99
+			*localLow = math.MaxFloat64
 
 		} else if k1.Low < *localLow {
 			*localLow = k1.Low
@@ -146,7 +146,7 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 		} else if k1.High > *localHigh+(*localHigh-*localLow)*exitRatio {
 			*state = 1
 			*localHigh = k1.High
-			*localLow = 9999999.99
+			*localLow = math.MaxFloat64
 			//paramReset(symbol)
 		} else if k1.High > upperBand[len(upperBand)-1] {
 			paramReset(symbol)
@@ -349,7 +349,7 @@ func paramReset(symbol string) {
 	*mapBorderLow[symbol] = 0
 	*mapBorderHigh[symbol] = 0
 	*mapLocalHigh[symbol] = 0
-	*mapLocalLow[symbol] = 9999999.99
+	*mapLocalLow[symbol] = math.MaxFloat64
 	*mapBBCounter[symbol] = 0
 }
 

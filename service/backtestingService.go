@@ -30,4 +30,8 @@ func BacktestingMode() {
 			ExportOrdersResult(symbol)
 		}
 	}
+
+	if core.Config.Trading.Backtesting.ExportCsv.Reports {
+		Logger.Info("Export Summary Report to " + filename)
+	}
 }

@@ -354,5 +354,5 @@ func ExportOrdersResult(symbol string) {
 		f.Write([]byte(fmt.Sprintf("%s\n", closedOrdersMap[symbol][k].ToCsv())))
 	}
 
-	Logger.Info("Export order list to " + filename)
+	Logger.Info("Export Order List to " + filename)
 }
