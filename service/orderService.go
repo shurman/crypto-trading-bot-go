@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	ordersMap    = make(map[string](map[string]*core.OrderBO))
-	currentKline = make(map[string]*core.Kline)
+	ordersMap       = make(map[string](map[string]*core.OrderBO))
+	closedOrdersMap = make(map[string](map[string]*core.OrderBO))
+	currentKline    = make(map[string]*core.Kline)
 
 	currentFund = make(map[string]float64)
 )
@@ -30,15 +31,22 @@ func CheckOrderFilled(symbol string, k *core.Kline) {
 				v.Fill(currentKline[symbol].CloseTime, false)
 				Logger.Debug(fmt.Sprintf("[%s] filled  %+v", v.GetId(), v))
 			}
-		} else if v.GetStatus() == core.ORDER_ENTRY {
+		}
+		if v.GetStatus() == core.ORDER_ENTRY {
 			if v.GetStopProfitPrice() <= currentKline[symbol].High && v.GetStopProfitPrice() >= currentKline[symbol].Low {
 				v.Exit(v.GetStopProfitPrice(), currentKline[symbol].CloseTime, true)
 				currentFund[symbol] += v.GetFinalProfit() - v.GetFee()
 				Logger.Debug(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
+
+				closedOrdersMap[symbol][v.GetId()] = v
+				delete(ordersMap[symbol], v.GetId())
 			} else if v.GetStopLossPrice() <= currentKline[symbol].High && v.GetStopLossPrice() >= currentKline[symbol].Low {
 				v.Exit(v.GetStopLossPrice(), currentKline[symbol].CloseTime, false)
 				currentFund[symbol] += v.GetFinalProfit() - v.GetFee()
 				Logger.Debug(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
+
+				closedOrdersMap[symbol][v.GetId()] = v
+				delete(ordersMap[symbol], v.GetId())
 			}
 		}
 	}
@@ -222,12 +230,18 @@ func GetOrder(strategyBO *core.StrategyBO, id string) *core.OrderBO {
 	if exists {
 		return order
 	}
+
+	order, exists = closedOrdersMap[strategyBO.GetSymbol()][strategyBO.ToStandardId(id)]
+	if exists {
+		return order
+	}
 	return nil
 }
 
 func orderPut(symbol string, id string, newOrder *core.OrderBO) (success bool, isReplaced bool) {
 	if _, exists := ordersMap[symbol]; !exists {
 		ordersMap[symbol] = make(map[string]*core.OrderBO)
+		closedOrdersMap[symbol] = make(map[string]*core.OrderBO)
 	} else if order, exists := ordersMap[symbol][id]; exists {
 		if order.GetStatus() == core.ORDER_OPEN {
 			ordersMap[symbol][id] = newOrder
@@ -263,7 +277,7 @@ func PrintOrderResult(symbol string) string {
 	maxDropDown := 0.0
 	totalFee := 0.0
 
-	for _, v := range ordersMap[symbol] {
+	for _, v := range closedOrdersMap[symbol] {
 		if v.GetDirection() == core.ORDER_LONG {
 			countLong++
 			if v.GetFinalProfit() > 0 {
@@ -273,7 +287,7 @@ func PrintOrderResult(symbol string) string {
 					maxDropDown = dropDown
 				}
 				dropDown = 0
-			} else {
+			} else if v.GetFinalProfit() < 0 {
 				lossLong++
 				dropDown += v.GetFinalProfit()
 			}
@@ -287,7 +301,7 @@ func PrintOrderResult(symbol string) string {
 					maxDropDown = dropDown
 				}
 				dropDown = 0
-			} else {
+			} else if v.GetFinalProfit() < 0 {
 				lossShort++
 				dropDown += v.GetFinalProfit()
 			}
@@ -331,13 +345,13 @@ func ExportOrdersResult(symbol string) {
 	f, _ := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	var orderKeys []string
-	for k := range ordersMap[symbol] {
+	for k := range closedOrdersMap[symbol] {
 		orderKeys = append(orderKeys, k)
 	}
 	sort.Strings(orderKeys)
 
 	for _, k := range orderKeys {
-		f.Write([]byte(fmt.Sprintf("%s\n", ordersMap[symbol][k].ToCsv())))
+		f.Write([]byte(fmt.Sprintf("%s\n", closedOrdersMap[symbol][k].ToCsv())))
 	}
 
 	Logger.Info("Export order list to " + filename)

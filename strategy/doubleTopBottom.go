@@ -24,7 +24,7 @@ var (
 	phase2           = true
 	exitRatio        = 0.4
 	borderValidRatio = 0.15
-	maxFeeRatio      = 0.15
+	maxFeeRatio      = 0.1
 
 	klinesBreakBase  = 13
 	klinesBreakLimit = 7
