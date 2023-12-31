@@ -138,6 +138,8 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 
 		} else if k1.High > *localHigh+(*localHigh-*localLow)*exitRatio {
 			paramReset(symbol)
+		} else if k1.High > upperBand[len(upperBand)-1] {
+			paramReset(symbol)
 		}
 
 	} else if *state == 3 {
@@ -203,6 +205,8 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			// *state = -3
 
 		} else if k1.Low < *localLow-(*localHigh-*localLow)*exitRatio {
+			paramReset(symbol)
+		} else if k1.Low < lowerBand[len(lowerBand)-1] {
 			paramReset(symbol)
 		}
 
