@@ -61,6 +61,10 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 	localHigh := mapLocalHigh[symbol]
 	localLow := mapLocalLow[symbol]
 
+	if *state != 0 {
+		service.Logger.Debug(fmt.Sprintf("%s\ts=%d\tborderLow=%f\tborderHigh=%f\tlocalHigh=%f\tlocalLow=%f", k1.StartTime, *state, *borderLow, *borderHigh, *localHigh, *localLow))
+	}
+
 	if *state == 0 {
 		//========3========
 		countBreakUp, countBreakDown := countBreakingKlines(closedKlines[klinesLimit-klinesBreakBase:], upperBand[klinesLimit-klinesBreakBase:], lowerBand[klinesLimit-klinesBreakBase:])
@@ -137,7 +141,10 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			*state = 4
 
 		} else if k1.High > *localHigh+(*localHigh-*localLow)*exitRatio {
-			paramReset(symbol)
+			*state = 1
+			*localHigh = k1.High
+			*localLow = 9999999.99
+			//paramReset(symbol)
 		} else if k1.High > upperBand[len(upperBand)-1] {
 			paramReset(symbol)
 		}
@@ -205,7 +212,10 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			// *state = -3
 
 		} else if k1.Low < *localLow-(*localHigh-*localLow)*exitRatio {
-			paramReset(symbol)
+			//paramReset(symbol)
+			*state = -1
+			*localHigh = 0
+			*localLow = k1.Low
 		} else if k1.Low < lowerBand[len(lowerBand)-1] {
 			paramReset(symbol)
 		}
