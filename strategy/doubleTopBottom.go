@@ -8,7 +8,6 @@ import (
 	"math"
 
 	"github.com/cinar/indicator"
-	//"log/slog"
 )
 
 var (
@@ -61,9 +60,6 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 	borderHigh := mapBorderHigh[symbol]
 	localHigh := mapLocalHigh[symbol]
 	localLow := mapLocalLow[symbol]
-	//bbCounter := mapBBCounter[symbol]
-
-	//slog.Info(fmt.Sprintf("[doubleTopBottom] state=%d %s", state, k1.ToString()))
 
 	if *state == 0 {
 		//========3========
@@ -157,6 +153,9 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			}
 			incrOrderId(symbol)
 
+		} else if k1.Low < *borderLow {
+			service.CancelOrder(bo, genOrderId(symbol, false), k1.IsNew)
+			paramReset(symbol)
 		} else {
 			createLongOrder(bo, k1, false)
 		}
@@ -220,6 +219,9 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			}
 			incrOrderId(symbol)
 
+		} else if k1.High > *borderHigh {
+			service.CancelOrder(bo, genOrderId(symbol, false), k1.IsNew)
+			paramReset(symbol)
 		} else {
 			createShortOrder(bo, k1, false)
 		}
@@ -245,7 +247,6 @@ func DoubleTopBottom(nextKline *core.Kline, bo *core.StrategyBO) {
 			createShortOrder(bo, k1, true)
 		}
 	}
-	//slog.Info(fmt.Sprintf("================= state=%d  CurrentFund=%f localHigh=%f localLow=%f", state, service.CurrentFund, localHigh, localLow))
 }
 
 func genOrderId(symbol string, isPhase2 bool) string {

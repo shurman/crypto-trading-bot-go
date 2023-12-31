@@ -243,7 +243,7 @@ func orderPut(symbol string, id string, newOrder *core.OrderBO) (success bool, i
 		ordersMap[symbol] = make(map[string]*core.OrderBO)
 		closedOrdersMap[symbol] = make(map[string]*core.OrderBO)
 	} else if order, exists := ordersMap[symbol][id]; exists {
-		if order.GetStatus() == core.ORDER_OPEN {
+		if order.GetStatus() == core.ORDER_OPEN || order.GetStatus() == core.ORDER_CANCEL {
 			ordersMap[symbol][id] = newOrder
 			return true, true
 		} else {
