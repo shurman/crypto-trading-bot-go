@@ -24,6 +24,10 @@ func recordNewKline(symbol string, newKline *core.Kline) {
 	Logger.Debug("<- " + fmt.Sprintf("%+v", newKline))
 	NotifyNewKline[symbol] <- newKline
 	<-NotifyAnalyzeDone[symbol]
+
+	if GetKlinesLen(symbol) == 20000 {
+		symbolKlines[symbol] = symbolKlines[symbol][10000:]
+	}
 }
 
 func GetKlinesLen(symbol string) int {
