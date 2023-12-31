@@ -23,11 +23,14 @@ var (
 	phase2           = true
 	exitRatio        = 0.4
 	borderValidRatio = 0.15
-	maxFeeRatio      = 0.1
+
+	maxFeeRatio = 0.1
 
 	klinesBreakBase  = 13
 	klinesBreakLimit = 7
 	klinesLimit      = 20 + klinesBreakBase + 1
+
+	klinesStopLossRefLimit = 5
 )
 
 func init() {
@@ -290,14 +293,16 @@ func createLongOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
 		return
 	}
 
+	_, low := getKlinesHighLow(service.GetRecentKlines(klinesStopLossRefLimit, bo.GetSymbol()))
+
 	service.CreateOrder(
 		bo,
 		genOrderId(bo.GetSymbol(), isPhase2),
 		core.ORDER_LONG,
-		getQuantity(bo.GetSymbol(), kline.High, kline.Low),
+		getQuantity(bo.GetSymbol(), kline.High, low),
 		kline.High,
-		kline.High+(kline.High-kline.Low)*core.Config.Trading.ProfitLossRatio,
-		kline.Low,
+		kline.High+(kline.High-low)*core.Config.Trading.ProfitLossRatio,
+		low,
 		kline.IsNew,
 	)
 }
@@ -311,14 +316,16 @@ func createShortOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
 		return
 	}
 
+	high, _ := getKlinesHighLow(service.GetRecentKlines(klinesStopLossRefLimit, bo.GetSymbol()))
+
 	service.CreateOrder(
 		bo,
 		genOrderId(bo.GetSymbol(), isPhase2),
 		core.ORDER_SHORT,
-		getQuantity(bo.GetSymbol(), kline.Low, kline.High),
+		getQuantity(bo.GetSymbol(), kline.Low, high),
 		kline.Low,
-		kline.Low-(kline.High-kline.Low)*core.Config.Trading.ProfitLossRatio,
-		kline.High,
+		kline.Low-(high-kline.Low)*core.Config.Trading.ProfitLossRatio,
+		high,
 		kline.IsNew,
 	)
 }
@@ -359,4 +366,18 @@ func countBreakingKlines(closedKline []float64, upperBand []float64, lowerBand [
 	}
 
 	return countBreakUp, countBreakDown
+}
+
+func getKlinesHighLow(klines []*core.Kline) (high float64, low float64) {
+	high = 0.0
+	low = math.MaxFloat64
+	for _, k := range klines {
+		if k.High > high {
+			high = k.High
+		}
+		if k.Low < low {
+			low = k.Low
+		}
+	}
+	return
 }
