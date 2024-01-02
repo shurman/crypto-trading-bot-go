@@ -1,6 +1,7 @@
 package service
 
 import (
+	"crypto-trading-bot-go/core"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,7 +11,16 @@ func IndicatorMode() {
 	LoadHistoryKline()
 	go WsTickService()
 
-	SendSlack("Indicator Started")
+	symbolsString := ""
+	for _, symbol := range core.Config.Trading.Symbols {
+		if symbolsString == "" {
+			symbolsString = symbol
+		} else {
+			symbolsString += ", " + symbol
+		}
+	}
+
+	SendSlack("Indicator Started.\nTracking: " + symbolsString)
 	Logger.Warn("Indicator Started")
 
 	quitChannel := make(chan os.Signal, 1)

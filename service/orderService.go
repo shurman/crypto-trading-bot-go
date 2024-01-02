@@ -272,16 +272,23 @@ func PrintOrderResult(symbol string) string {
 	lossShort := 0
 	profitLong := 0.0
 	profitShort := 0.0
+	instantWin := 0
+	instantLoss := 0
 
 	dropDown := 0.0
 	maxDropDown := 0.0
-	totalFee := 0.0
+	totalLongFee := 0.0
+	totalShortFee := 0.0
 
 	for _, v := range closedOrdersMap[symbol] {
 		if v.GetDirection() == core.ORDER_LONG {
 			countLong++
 			if v.GetFinalProfit() > 0 {
 				winLong++
+
+				if v.IsInstantFillAndExit() {
+					instantWin++
+				}
 
 				if dropDown < maxDropDown {
 					maxDropDown = dropDown
@@ -290,12 +297,21 @@ func PrintOrderResult(symbol string) string {
 			} else if v.GetFinalProfit() < 0 {
 				lossLong++
 				dropDown += v.GetFinalProfit()
+
+				if v.IsInstantFillAndExit() {
+					instantLoss++
+				}
 			}
 			profitLong += v.GetFinalProfit()
+			totalLongFee += v.GetFee()
 		} else if v.GetDirection() == core.ORDER_SHORT {
 			countShort++
 			if v.GetFinalProfit() > 0 {
 				winShort++
+
+				if v.IsInstantFillAndExit() {
+					instantWin++
+				}
 
 				if dropDown < maxDropDown {
 					maxDropDown = dropDown
@@ -304,40 +320,46 @@ func PrintOrderResult(symbol string) string {
 			} else if v.GetFinalProfit() < 0 {
 				lossShort++
 				dropDown += v.GetFinalProfit()
+
+				if v.IsInstantFillAndExit() {
+					instantLoss++
+				}
 			}
 			profitShort += v.GetFinalProfit()
+			totalShortFee += v.GetFee()
 		}
-
-		totalFee += v.GetFee()
 	}
 
 	Logger.Warn(fmt.Sprintf("%s Backtesting Result", symbol))
 	Logger.Warn("\tLong\t\tShort\t\tTotal")
-	Logger.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d\t%5d/%5d",
+	Logger.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d\t%5d/%5d  (Instant: %4d/%4d) (Open&Entry: %d)",
 		winLong, winLong+lossLong,
 		winShort, winShort+lossShort,
-		winLong+winShort, winLong+lossLong+winShort+lossShort))
+		winLong+winShort, winLong+lossLong+winShort+lossShort,
+		instantWin,
+		instantWin+instantLoss,
+		len(ordersMap[symbol])))
 	winRate := float64(winLong+winShort) / float64(winLong+lossLong+winShort+lossShort)
 	Logger.Warn(fmt.Sprintf("Ratio\t=%.3f%%\t=%.3f%%\t=%.3f%% (ev:%.3f)",
 		float64(winLong)/float64(winLong+lossLong)*100,
 		float64(winShort)/float64(winShort+lossShort)*100,
 		winRate*100,
 		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate)))
-	Logger.Warn(fmt.Sprintf("Profit\t$%-8.2f\t$%-8.2f", profitLong, profitShort))
-	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.2f (incl. fee $%5.3f)\t(MDD:%.2f)",
+	Logger.Warn(fmt.Sprintf("Profit\t$%-8.2f\t$%-8.2f\t$%-8.2f", profitLong, profitShort, profitLong+profitShort))
+	Logger.Warn(fmt.Sprintf("Fee\t$%-6.3f\t$%-6.3f\t$%-6.3f", totalLongFee, totalShortFee, totalLongFee+totalShortFee))
+	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.3f\t(MDD:%.2f)",
 		core.Config.Trading.InitialFund,
 		currentFund[symbol],
-		totalFee,
 		maxDropDown))
-	Logger.Warn("=====================================")
+	Logger.Warn("=============================================================")
 
 	return fmt.Sprintf("%s,%.3f%%,%5d,%.3f,%6.2f,%5.3f\n",
 		symbol,
 		winRate*100,
 		winLong+lossLong+winShort+lossShort,
 		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate),
-		currentFund[symbol]-core.Config.Trading.InitialFund+totalFee,
-		-totalFee)
+		currentFund[symbol]-core.Config.Trading.InitialFund+(totalLongFee+totalShortFee),
+		-(totalLongFee + totalShortFee))
 }
 
 func ExportOrdersResult(symbol string) {

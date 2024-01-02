@@ -122,6 +122,10 @@ func (bo *OrderBO) IsExistedAndFilled() bool {
 	return bo.status == ORDER_ENTRY || bo.status == ORDER_EXIT
 }
 
+func (bo *OrderBO) IsInstantFillAndExit() bool {
+	return bo.fillTime == bo.exitTime
+}
+
 type OrderStatus string
 
 const (
