@@ -288,21 +288,22 @@ func createLongOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
 		return
 	}
 
+	entryPrice := kline.High * 0.999
+	_, stopLossPrice := getKlinesHighLow(service.GetRecentKlines(klinesStopLossRefLimit, bo.GetSymbol()))
+
 	//Prevent fee exceeding limit
-	if kline.High-kline.Low < kline.High*(core.Config.Trading.FeeTakerRate/100)/maxFeeRatio {
+	if entryPrice-stopLossPrice < entryPrice*(core.Config.Trading.FeeTakerRate/100)/maxFeeRatio {
 		return
 	}
-
-	_, low := getKlinesHighLow(service.GetRecentKlines(klinesStopLossRefLimit, bo.GetSymbol()))
 
 	service.CreateOrder(
 		bo,
 		genOrderId(bo.GetSymbol(), isPhase2),
 		core.ORDER_LONG,
-		getQuantity(bo.GetSymbol(), kline.High, low),
-		kline.High,
-		kline.High+(kline.High-low)*core.Config.Trading.ProfitLossRatio,
-		low,
+		getQuantity(bo.GetSymbol(), entryPrice, stopLossPrice),
+		entryPrice,
+		entryPrice+(entryPrice-stopLossPrice)*core.Config.Trading.ProfitLossRatio,
+		stopLossPrice,
 		kline.IsNew,
 	)
 }
@@ -312,20 +313,20 @@ func createShortOrder(bo *core.StrategyBO, kline *core.Kline, isPhase2 bool) {
 		return
 	}
 
-	if kline.High-kline.Low < kline.Low*(core.Config.Trading.FeeTakerRate/100)/maxFeeRatio {
+	entryPrice := kline.Low * 1.001
+	stopLossPrice, _ := getKlinesHighLow(service.GetRecentKlines(klinesStopLossRefLimit, bo.GetSymbol()))
+	if stopLossPrice-entryPrice < entryPrice*(core.Config.Trading.FeeTakerRate/100)/maxFeeRatio {
 		return
 	}
-
-	high, _ := getKlinesHighLow(service.GetRecentKlines(klinesStopLossRefLimit, bo.GetSymbol()))
 
 	service.CreateOrder(
 		bo,
 		genOrderId(bo.GetSymbol(), isPhase2),
 		core.ORDER_SHORT,
-		getQuantity(bo.GetSymbol(), kline.Low, high),
-		kline.Low,
-		kline.Low-(high-kline.Low)*core.Config.Trading.ProfitLossRatio,
-		high,
+		getQuantity(bo.GetSymbol(), entryPrice, stopLossPrice),
+		entryPrice,
+		entryPrice-(stopLossPrice-entryPrice)*core.Config.Trading.ProfitLossRatio,
+		stopLossPrice,
 		kline.IsNew,
 	)
 }
