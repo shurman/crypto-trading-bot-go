@@ -332,7 +332,7 @@ func PrintOrderResult(symbol string) string {
 
 	Logger.Warn(fmt.Sprintf("%s Backtesting Result", symbol))
 	Logger.Warn("\tLong\t\tShort\t\tTotal")
-	Logger.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d\t%5d/%5d  (Instant: %4d/%4d) (Open&Entry: %d)",
+	Logger.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d\t%5d/%5d  (Instant: %2d/%2d) (Open&Entry: %d)",
 		winLong, winLong+lossLong,
 		winShort, winShort+lossShort,
 		winLong+winShort, winLong+lossLong+winShort+lossShort,
@@ -346,10 +346,11 @@ func PrintOrderResult(symbol string) string {
 		winRate*100,
 		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate)))
 	Logger.Warn(fmt.Sprintf("Profit\t$%-8.2f\t$%-8.2f\t$%-8.2f", profitLong, profitShort, profitLong+profitShort))
-	Logger.Warn(fmt.Sprintf("Fee\t$%-6.3f\t$%-6.3f\t$%-6.3f", totalLongFee, totalShortFee, totalLongFee+totalShortFee))
-	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.3f\t(MDD:%.2f)",
+	Logger.Warn(fmt.Sprintf("Fee\t$%-8.3f\t$%-8.3f\t$%-8.3f", totalLongFee, totalShortFee, totalLongFee+totalShortFee))
+	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.3f (%3.3f%%)\t(MDD:%.2f)",
 		core.Config.Trading.InitialFund,
 		currentFund[symbol],
+		(currentFund[symbol]/core.Config.Trading.InitialFund-1)*100,
 		maxDropDown))
 	Logger.Warn("=============================================================")
 
