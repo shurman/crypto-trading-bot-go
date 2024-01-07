@@ -28,28 +28,45 @@ func CheckOrderFilled(symbol string, k *core.Kline) {
 	for _, v := range ordersMap[symbol] {
 		if v.GetStatus() == core.ORDER_OPEN {
 			if v.GetEntryPrice() <= currentKline[symbol].High && v.GetEntryPrice() >= currentKline[symbol].Low {
-				v.Fill(currentKline[symbol].CloseTime, false)
+				v.Fill(currentKline[symbol].CloseTime, true)
 				Logger.Debug(fmt.Sprintf("[%s] filled  %+v", v.GetId(), v))
 			}
 		}
 		if v.GetStatus() == core.ORDER_ENTRY {
 			if v.GetStopProfitPrice() <= currentKline[symbol].High && v.GetStopProfitPrice() >= currentKline[symbol].Low {
-				v.Exit(v.GetStopProfitPrice(), currentKline[symbol].CloseTime, true)
-				currentFund[symbol] += v.GetFinalProfit() - v.GetFee()
-				Logger.Debug(fmt.Sprintf("[%s] Stop Profit  %+v", v.GetId(), v))
+				ExitingOrder(v, v.GetStopProfitPrice(), symbol, true, false)
 
-				closedOrdersMap[symbol][v.GetId()] = v
-				delete(ordersMap[symbol], v.GetId())
 			} else if v.GetStopLossPrice() <= currentKline[symbol].High && v.GetStopLossPrice() >= currentKline[symbol].Low {
-				v.Exit(v.GetStopLossPrice(), currentKline[symbol].CloseTime, false)
-				currentFund[symbol] += v.GetFinalProfit() - v.GetFee()
-				Logger.Debug(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
+				ExitingOrder(v, v.GetStopLossPrice(), symbol, false, true)
 
-				closedOrdersMap[symbol][v.GetId()] = v
-				delete(ordersMap[symbol], v.GetId())
+			} else if v.GetDirection() == core.ORDER_LONG && v.GetStopProfitPrice() < currentKline[symbol].Low {
+				ExitingOrder(v, currentKline[symbol].Close, symbol, true, true)
+
+			} else if v.GetDirection() == core.ORDER_SHORT && v.GetStopProfitPrice() > currentKline[symbol].High {
+				ExitingOrder(v, currentKline[symbol].Close, symbol, true, true)
+
+			} else if v.GetDirection() == core.ORDER_LONG && v.GetStopLossPrice() > currentKline[symbol].High {
+				ExitingOrder(v, currentKline[symbol].Close, symbol, false, true)
+
+			} else if v.GetDirection() == core.ORDER_SHORT && v.GetStopLossPrice() < currentKline[symbol].Low {
+				ExitingOrder(v, currentKline[symbol].Close, symbol, false, true)
 			}
 		}
 	}
+}
+
+func ExitingOrder(v *core.OrderBO, exitPrice float64, symbol string, isTakeProfit bool, isTaker bool) {
+	v.Exit(exitPrice, currentKline[symbol].CloseTime, isTaker)
+	currentFund[symbol] += v.GetFinalProfit() - v.GetFee()
+
+	if isTakeProfit {
+		Logger.Debug(fmt.Sprintf("[%s] Take Profit  %+v", v.GetId(), v))
+	} else {
+		Logger.Debug(fmt.Sprintf("[%s] Stop Loss  %+v", v.GetId(), v))
+	}
+
+	closedOrdersMap[symbol][v.GetId()] = v
+	delete(ordersMap[symbol], v.GetId())
 }
 
 func CreateOrder(
@@ -340,7 +357,7 @@ func PrintOrderResult(symbol string) string {
 		instantWin+instantLoss,
 		len(ordersMap[symbol])))
 	winRate := float64(winLong+winShort) / float64(winLong+lossLong+winShort+lossShort)
-	Logger.Warn(fmt.Sprintf("Ratio\t=%.3f%%\t=%.3f%%\t=%.3f%% (ev:%.3f)",
+	Logger.Warn(fmt.Sprintf("Ratio\t=%8.3f%%\t=%8.3f%%\t=%8.3f%% (ev:%.3f)",
 		float64(winLong)/float64(winLong+lossLong)*100,
 		float64(winShort)/float64(winShort+lossShort)*100,
 		winRate*100,

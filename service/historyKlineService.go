@@ -110,7 +110,7 @@ func DownloadRawHistoryKline(symbol string, interval string, startTime int64, li
 }
 
 func LoadRawHistoryKline(symbol string, interval string) {
-	data, err := os.ReadFile(symbol + "_" + interval + ".txt")
+	data, err := os.ReadFile("data/" + symbol + "_" + interval + ".txt")
 
 	if err != nil {
 		panic(err)

@@ -8,11 +8,13 @@ import (
 )
 
 //TODO
+//flag to delay tp,sl for one kline (exit price should not use pre-set price)
 //Sharpe ratio //http://www.ifuun.com/a2018082215739276/
 //multiple interval
 
 //https://www.ptt.cc/bbs/Trading/M.1538318192.A.FBC.html
 //binance/WOOX create order
+//backtesting with bitfinex
 
 //Future work
 //next strategy
