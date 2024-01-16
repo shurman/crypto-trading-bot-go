@@ -19,6 +19,7 @@ import (
 
 var (
 	futuresClient *futures.Client
+	filePath      string = "data/"
 )
 
 func init() {
@@ -47,7 +48,7 @@ func LoadHistoryKline() {
 }
 
 func DownloadRawHistoryKline(symbol string, interval string, startTime int64, limit int) {
-	f, _ := os.OpenFile(symbol+"_"+interval+".txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, _ := os.OpenFile(filePath+symbol+"_"+interval+".txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	defer f.Close()
 
 	for {
@@ -110,7 +111,7 @@ func DownloadRawHistoryKline(symbol string, interval string, startTime int64, li
 }
 
 func LoadRawHistoryKline(symbol string, interval string) {
-	data, err := os.ReadFile("data/" + symbol + "_" + interval + ".txt")
+	data, err := os.ReadFile(filePath + symbol + "_" + interval + ".txt")
 
 	if err != nil {
 		panic(err)

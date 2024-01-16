@@ -349,7 +349,7 @@ func PrintOrderResult(symbol string) string {
 
 	Logger.Warn(fmt.Sprintf("%s Backtesting Result", symbol))
 	Logger.Warn("\tLong\t\tShort\t\tTotal")
-	Logger.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d\t%5d/%5d  (Instant: %2d/%2d) (Open&Entry: %d)",
+	Logger.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d\t%5d/%5d  (Instant: %2d/%2d) (Still Entry: %d)",
 		winLong, winLong+lossLong,
 		winShort, winShort+lossShort,
 		winLong+winShort, winLong+lossLong+winShort+lossShort,
