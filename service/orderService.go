@@ -299,7 +299,16 @@ func PrintOrderResult(symbol string) string {
 	totalLongFee := 0.0
 	totalShortFee := 0.0
 
+	var closedOrders []*core.OrderBO
+
 	for _, v := range closedOrdersMap[symbol] {
+		closedOrders = append(closedOrders, v)
+	}
+	sort.Slice(closedOrders, func(i int, j int) bool {
+		return closedOrders[i].GetCreateTime().Before(closedOrders[j].GetCreateTime())
+	})
+
+	for _, v := range closedOrders {
 		if v.GetDirection() == core.ORDER_LONG {
 			countLong++
 			if v.GetFinalProfit() > 0 {
@@ -317,7 +326,7 @@ func PrintOrderResult(symbol string) string {
 
 			} else if v.GetFinalProfit() < 0 {
 				lossLongCount++
-				dropDown += v.GetFinalProfit()
+				dropDown += v.GetFinalProfit() - v.GetFee()
 
 				if v.IsInstantFillAndExit() {
 					instantLoss++
@@ -343,7 +352,7 @@ func PrintOrderResult(symbol string) string {
 
 			} else if v.GetFinalProfit() < 0 {
 				lossShortCount++
-				dropDown += v.GetFinalProfit()
+				dropDown += v.GetFinalProfit() - v.GetFee()
 
 				if v.IsInstantFillAndExit() {
 					instantLoss++
@@ -363,9 +372,9 @@ func PrintOrderResult(symbol string) string {
 	}
 
 	if maxDropDown == 0 {
-		recoveryFactor = (currentFund[symbol] - core.Config.Trading.InitialFund) / -maxDropDown
-	} else {
 		recoveryFactor = (currentFund[symbol] - core.Config.Trading.InitialFund) / 1
+	} else {
+		recoveryFactor = (currentFund[symbol] - core.Config.Trading.InitialFund) / -maxDropDown
 	}
 
 	Logger.Warn(fmt.Sprintf("%s Backtesting Result", symbol))
@@ -404,7 +413,7 @@ func PrintOrderResult(symbol string) string {
 }
 
 func ExportOrdersResult(symbol string) {
-	filename := time.Now().Format("20060102150405") + "_" + symbol + "_orders.csv"
+	filename := fmt.Sprintf("%s_%s_%s_%.2f_orders.csv", time.Now().Format("20060102150405"), symbol, core.Config.Trading.Interval, core.Config.Trading.ProfitLossRatio)
 	f, _ := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	var orderKeys []string

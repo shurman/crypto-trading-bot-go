@@ -62,6 +62,10 @@ func (bo *OrderBO) GetDirection() OrderDirection {
 	return bo.dir
 }
 
+func (bo *OrderBO) GetCreateTime() time.Time {
+	return bo.createTime
+}
+
 func (bo *OrderBO) GetStopLossPrice() float64 {
 	return bo.stopLoss
 }
