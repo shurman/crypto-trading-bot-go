@@ -283,12 +283,14 @@ func GetRiskPerTrade(symbol string) float64 {
 func PrintOrderResult(symbol string) string {
 	countLong := 0
 	countShort := 0
-	winLong := 0
-	lossLong := 0
-	winShort := 0
-	lossShort := 0
+	winLongCount := 0
+	lossLongCount := 0
+	winShortCount := 0
+	lossShortCount := 0
 	profitLong := 0.0
 	profitShort := 0.0
+	lossLong := 0.0
+	lossShort := 0.0
 	instantWin := 0
 	instantLoss := 0
 
@@ -301,7 +303,7 @@ func PrintOrderResult(symbol string) string {
 		if v.GetDirection() == core.ORDER_LONG {
 			countLong++
 			if v.GetFinalProfit() > 0 {
-				winLong++
+				winLongCount++
 
 				if v.IsInstantFillAndExit() {
 					instantWin++
@@ -311,20 +313,23 @@ func PrintOrderResult(symbol string) string {
 					maxDropDown = dropDown
 				}
 				dropDown = 0
+				profitLong += v.GetFinalProfit()
+
 			} else if v.GetFinalProfit() < 0 {
-				lossLong++
+				lossLongCount++
 				dropDown += v.GetFinalProfit()
 
 				if v.IsInstantFillAndExit() {
 					instantLoss++
 				}
+				lossLong += v.GetFinalProfit()
 			}
-			profitLong += v.GetFinalProfit()
 			totalLongFee += v.GetFee()
+
 		} else if v.GetDirection() == core.ORDER_SHORT {
 			countShort++
 			if v.GetFinalProfit() > 0 {
-				winShort++
+				winShortCount++
 
 				if v.IsInstantFillAndExit() {
 					instantWin++
@@ -334,15 +339,17 @@ func PrintOrderResult(symbol string) string {
 					maxDropDown = dropDown
 				}
 				dropDown = 0
+				profitShort += v.GetFinalProfit()
+
 			} else if v.GetFinalProfit() < 0 {
-				lossShort++
+				lossShortCount++
 				dropDown += v.GetFinalProfit()
 
 				if v.IsInstantFillAndExit() {
 					instantLoss++
 				}
+				lossShort += v.GetFinalProfit()
 			}
-			profitShort += v.GetFinalProfit()
 			totalShortFee += v.GetFee()
 		}
 	}
@@ -350,19 +357,20 @@ func PrintOrderResult(symbol string) string {
 	Logger.Warn(fmt.Sprintf("%s Backtesting Result", symbol))
 	Logger.Warn("\tLong\t\tShort\t\tTotal")
 	Logger.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d\t%5d/%5d  (Instant: %2d/%2d) (Still Entry: %d)",
-		winLong, winLong+lossLong,
-		winShort, winShort+lossShort,
-		winLong+winShort, winLong+lossLong+winShort+lossShort,
+		winLongCount, winLongCount+lossLongCount,
+		winShortCount, winShortCount+lossShortCount,
+		winLongCount+winShortCount, winLongCount+lossLongCount+winShortCount+lossShortCount,
 		instantWin,
 		instantWin+instantLoss,
 		len(ordersMap[symbol])))
-	winRate := float64(winLong+winShort) / float64(winLong+lossLong+winShort+lossShort)
-	Logger.Warn(fmt.Sprintf("Ratio\t=%8.3f%%\t=%8.3f%%\t=%8.3f%% (ev:%.3f)",
-		float64(winLong)/float64(winLong+lossLong)*100,
-		float64(winShort)/float64(winShort+lossShort)*100,
+	winRate := float64(winLongCount+winShortCount) / float64(winLongCount+lossLongCount+winShortCount+lossShortCount)
+	Logger.Warn(fmt.Sprintf("Ratio\t=%8.3f%%\t=%8.3f%%\t=%8.3f%% (ev:%.3f) (PF: %.3f)",
+		float64(winLongCount)/float64(winLongCount+lossLongCount)*100,
+		float64(winShortCount)/float64(winShortCount+lossShortCount)*100,
 		winRate*100,
-		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate)))
-	Logger.Warn(fmt.Sprintf("Profit\t$%-8.2f\t$%-8.2f\t$%-8.2f", profitLong, profitShort, profitLong+profitShort))
+		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate),
+		(profitLong+profitShort)/-(lossLong+lossShort)))
+	Logger.Warn(fmt.Sprintf("Profit\t$%-8.2f\t$%-8.2f\t$%-8.2f", profitLong+lossLong, profitShort+lossShort, profitLong+profitShort+lossLong+lossShort))
 	Logger.Warn(fmt.Sprintf("Fee\t$%-8.3f\t$%-8.3f\t$%-8.3f", totalLongFee, totalShortFee, totalLongFee+totalShortFee))
 	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.3f (%3.3f%%)\t(MDD:%.2f)",
 		core.Config.Trading.InitialFund,
@@ -374,8 +382,8 @@ func PrintOrderResult(symbol string) string {
 	return fmt.Sprintf("%s,%.3f%%,%5d,%.3f,%6.2f,%5.3f\n",
 		symbol,
 		winRate*100,
-		winLong+lossLong+winShort+lossShort,
-		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate),
+		winLongCount+lossLongCount+winShortCount+lossShortCount,
+		(profitLong+profitShort)/-(lossLong+lossShort),
 		currentFund[symbol]-core.Config.Trading.InitialFund+(totalLongFee+totalShortFee),
 		-(totalLongFee + totalShortFee))
 }
