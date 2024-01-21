@@ -355,10 +355,17 @@ func PrintOrderResult(symbol string) string {
 	}
 
 	var profitFactor float64
+	var recoveryFactor float64
 	if lossLong+lossShort == 0 {
 		profitFactor = (profitLong + profitShort)
 	} else {
 		profitFactor = (profitLong + profitShort) / -(lossLong + lossShort)
+	}
+
+	if maxDropDown == 0 {
+		recoveryFactor = (currentFund[symbol] - core.Config.Trading.InitialFund) / -maxDropDown
+	} else {
+		recoveryFactor = (currentFund[symbol] - core.Config.Trading.InitialFund) / 1
 	}
 
 	Logger.Warn(fmt.Sprintf("%s Backtesting Result", symbol))
@@ -377,7 +384,7 @@ func PrintOrderResult(symbol string) string {
 		winRate*100,
 		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate),
 		profitFactor,
-		(currentFund[symbol]-core.Config.Trading.InitialFund)/-maxDropDown))
+		recoveryFactor))
 	Logger.Warn(fmt.Sprintf("Profit\t$%-8.2f\t$%-8.2f\t$%-8.2f", profitLong+lossLong, profitShort+lossShort, profitLong+profitShort+lossLong+lossShort))
 	Logger.Warn(fmt.Sprintf("Fee\t$%-8.3f\t$%-8.3f\t$%-8.3f", totalLongFee, totalShortFee, totalLongFee+totalShortFee))
 	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.3f (%3.3f%%)\t(MDD:%.2f)",

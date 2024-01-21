@@ -24,7 +24,7 @@ var (
 	exitRatio        = 0.4
 	borderValidRatio = 0.15
 
-	maxFeeRatio = 0.1
+	maxFeeRatio = 0.06
 
 	klinesBreakBase  = 13
 	klinesBreakLimit = 7
