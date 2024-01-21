@@ -363,7 +363,7 @@ func PrintOrderResult(symbol string) string {
 
 	Logger.Warn(fmt.Sprintf("%s Backtesting Result", symbol))
 	Logger.Warn("\tLong\t\tShort\t\tTotal")
-	Logger.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d\t%5d/%5d  (Instant: %2d/%2d) (Still Entry: %d)",
+	Logger.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d\t%5d/%5d\t(Instant: %2d/%2d) (Still Entry: %d)",
 		winLongCount, winLongCount+lossLongCount,
 		winShortCount, winShortCount+lossShortCount,
 		winLongCount+winShortCount, winLongCount+lossLongCount+winShortCount+lossShortCount,
@@ -371,12 +371,13 @@ func PrintOrderResult(symbol string) string {
 		instantWin+instantLoss,
 		len(ordersMap[symbol])))
 	winRate := float64(winLongCount+winShortCount) / float64(winLongCount+lossLongCount+winShortCount+lossShortCount)
-	Logger.Warn(fmt.Sprintf("Ratio\t=%8.3f%%\t=%8.3f%%\t=%8.3f%% (ev:%.3f) (PF: %.3f)",
+	Logger.Warn(fmt.Sprintf("Ratio\t=%8.3f%%\t=%8.3f%%\t=%8.3f%%\t(ev: %.3f) (P.F.: %.3f) (R.F.: %.3f)",
 		float64(winLongCount)/float64(winLongCount+lossLongCount)*100,
 		float64(winShortCount)/float64(winShortCount+lossShortCount)*100,
 		winRate*100,
 		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate),
-		profitFactor))
+		profitFactor,
+		(currentFund[symbol]-core.Config.Trading.InitialFund)/-maxDropDown))
 	Logger.Warn(fmt.Sprintf("Profit\t$%-8.2f\t$%-8.2f\t$%-8.2f", profitLong+lossLong, profitShort+lossShort, profitLong+profitShort+lossLong+lossShort))
 	Logger.Warn(fmt.Sprintf("Fee\t$%-8.3f\t$%-8.3f\t$%-8.3f", totalLongFee, totalShortFee, totalLongFee+totalShortFee))
 	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.3f (%3.3f%%)\t(MDD:%.2f)",
