@@ -313,7 +313,7 @@ func PrintOrderResult(symbol string) string {
 					maxDropDown = dropDown
 				}
 				dropDown = 0
-				profitLong += v.GetFinalProfit()
+				profitLong += v.GetFinalProfit() - v.GetFee()
 
 			} else if v.GetFinalProfit() < 0 {
 				lossLongCount++
@@ -322,7 +322,7 @@ func PrintOrderResult(symbol string) string {
 				if v.IsInstantFillAndExit() {
 					instantLoss++
 				}
-				lossLong += v.GetFinalProfit()
+				lossLong += v.GetFinalProfit() - v.GetFee()
 			}
 			totalLongFee += v.GetFee()
 
@@ -339,7 +339,7 @@ func PrintOrderResult(symbol string) string {
 					maxDropDown = dropDown
 				}
 				dropDown = 0
-				profitShort += v.GetFinalProfit()
+				profitShort += v.GetFinalProfit() - v.GetFee()
 
 			} else if v.GetFinalProfit() < 0 {
 				lossShortCount++
@@ -348,10 +348,17 @@ func PrintOrderResult(symbol string) string {
 				if v.IsInstantFillAndExit() {
 					instantLoss++
 				}
-				lossShort += v.GetFinalProfit()
+				lossShort += v.GetFinalProfit() - v.GetFee()
 			}
 			totalShortFee += v.GetFee()
 		}
+	}
+
+	var profitFactor float64
+	if lossLong+lossShort == 0 {
+		profitFactor = (profitLong + profitShort)
+	} else {
+		profitFactor = (profitLong + profitShort) / -(lossLong + lossShort)
 	}
 
 	Logger.Warn(fmt.Sprintf("%s Backtesting Result", symbol))
@@ -369,7 +376,7 @@ func PrintOrderResult(symbol string) string {
 		float64(winShortCount)/float64(winShortCount+lossShortCount)*100,
 		winRate*100,
 		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate),
-		(profitLong+profitShort)/-(lossLong+lossShort)))
+		profitFactor))
 	Logger.Warn(fmt.Sprintf("Profit\t$%-8.2f\t$%-8.2f\t$%-8.2f", profitLong+lossLong, profitShort+lossShort, profitLong+profitShort+lossLong+lossShort))
 	Logger.Warn(fmt.Sprintf("Fee\t$%-8.3f\t$%-8.3f\t$%-8.3f", totalLongFee, totalShortFee, totalLongFee+totalShortFee))
 	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.3f (%3.3f%%)\t(MDD:%.2f)",
@@ -383,7 +390,7 @@ func PrintOrderResult(symbol string) string {
 		symbol,
 		winRate*100,
 		winLongCount+lossLongCount+winShortCount+lossShortCount,
-		(profitLong+profitShort)/-(lossLong+lossShort),
+		profitFactor,
 		currentFund[symbol]-core.Config.Trading.InitialFund+(totalLongFee+totalShortFee),
 		-(totalLongFee + totalShortFee))
 }
