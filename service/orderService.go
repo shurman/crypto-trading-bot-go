@@ -99,7 +99,7 @@ func CreateOrder(
 
 	var action string
 	if isReplaced {
-		action = "Cancel & re-Create"
+		action = "re-Create"
 	} else {
 		action = "Create"
 	}
@@ -187,15 +187,13 @@ func CreateMarketOrder(strategyBO *core.StrategyBO,
 	}
 
 	if sendNotify {
-		SendSlack(fmt.Sprintf("%s %s %s %.4f@%.4f P:%.4f L:%.4f  (risk:%.3fu) id:%s",
+		SendSlack(fmt.Sprintf("%s %s %s@%.4f P:%.4f L:%.4f  %s",
 			strategyBO.GetSymbol(),
 			action,
 			dir.ToString(),
-			quantity,
 			currentKline[strategyBO.GetSymbol()].Close,
 			stopProfit,
 			stopLoss,
-			(currentKline[strategyBO.GetSymbol()].Close-stopLoss)*quantity*float64(dir),
 			strategyBO.ToStandardId(_id),
 		))
 	}
@@ -299,14 +297,7 @@ func PrintOrderResult(symbol string) string {
 	totalLongFee := 0.0
 	totalShortFee := 0.0
 
-	var closedOrders []*core.OrderBO
-
-	for _, v := range closedOrdersMap[symbol] {
-		closedOrders = append(closedOrders, v)
-	}
-	sort.Slice(closedOrders, func(i int, j int) bool {
-		return closedOrders[i].GetCreateTime().Before(closedOrders[j].GetCreateTime())
-	})
+	closedOrders := getClosedOrderSlices(symbol)
 
 	for _, v := range closedOrders {
 		if v.GetDirection() == core.ORDER_LONG {
@@ -413,18 +404,49 @@ func PrintOrderResult(symbol string) string {
 }
 
 func ExportOrdersResult(symbol string) {
-	filename := fmt.Sprintf("%s_%s_%s_%.2f_orders.csv", time.Now().Format("20060102150405"), symbol, core.Config.Trading.Interval, core.Config.Trading.ProfitLossRatio)
+	filename := fmt.Sprintf("%s_%s_%s_%.2f_orders.csv",
+		time.Now().Format("20060102150405"),
+		symbol,
+		core.Config.Trading.Interval,
+		core.Config.Trading.ProfitLossRatio)
 	f, _ := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
-	var orderKeys []string
-	for k := range closedOrdersMap[symbol] {
-		orderKeys = append(orderKeys, k)
-	}
-	sort.Strings(orderKeys)
-
-	for _, k := range orderKeys {
-		f.Write([]byte(fmt.Sprintf("%s\n", closedOrdersMap[symbol][k].ToCsv())))
+	closedOrders := getClosedOrderSlices(symbol)
+	for _, v := range closedOrders {
+		f.Write([]byte(fmt.Sprintf("%s\n", v.ToCsv())))
 	}
 
 	Logger.Info("Export Order List to " + filename)
+}
+
+func ExportPerformanceChart(symbol string) {
+	filename := fmt.Sprintf("%s_%s_%.2f.png",
+		symbol,
+		core.Config.Trading.Interval,
+		core.Config.Trading.ProfitLossRatio)
+	closedOrders := getClosedOrderSlices(symbol)
+
+	var xValues []time.Time
+	var yValues []float64
+	currentFund := core.Config.Trading.InitialFund
+
+	for _, v := range closedOrders {
+		currentFund += v.GetFinalProfit() - v.GetFee()
+		xValues = append(xValues, v.GetCreateTime())
+		yValues = append(yValues, currentFund)
+	}
+
+	ExportChart(xValues, yValues, symbol+" "+core.Config.Trading.Interval, filename)
+	Logger.Info("Export Performance Chart to " + filename)
+}
+
+func getClosedOrderSlices(symbol string) (closedOrders []*core.OrderBO) {
+	for _, v := range closedOrdersMap[symbol] {
+		closedOrders = append(closedOrders, v)
+	}
+	sort.Slice(closedOrders, func(i int, j int) bool {
+		return closedOrders[i].GetCreateTime().Before(closedOrders[j].GetCreateTime())
+	})
+
+	return
 }

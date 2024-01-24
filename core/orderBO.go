@@ -66,6 +66,10 @@ func (bo *OrderBO) GetCreateTime() time.Time {
 	return bo.createTime
 }
 
+func (bo *OrderBO) GetExitTime() time.Time {
+	return bo.exitTime
+}
+
 func (bo *OrderBO) GetStopLossPrice() float64 {
 	return bo.stopLoss
 }

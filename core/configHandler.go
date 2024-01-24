@@ -39,8 +39,9 @@ type IndicatorConfigs struct {
 }
 
 type BacktestingConfigs struct {
-	ExportCsv BacktestingExportCsvConfigs `mapstructure:"exportCsv"`
-	Download  BacktestingDownloadConfigs  `mapstructure:"download"`
+	ExportCsv   BacktestingExportCsvConfigs `mapstructure:"exportCsv"`
+	Download    BacktestingDownloadConfigs  `mapstructure:"download"`
+	ExportImage bool                        `mapstructure:"exportImage"`
 }
 
 type BacktestingExportCsvConfigs struct {

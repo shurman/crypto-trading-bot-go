@@ -30,6 +30,10 @@ func BacktestingMode() {
 		if core.Config.Trading.Backtesting.ExportCsv.Orders {
 			ExportOrdersResult(symbol)
 		}
+
+		if core.Config.Trading.Backtesting.ExportImage {
+			ExportPerformanceChart(symbol)
+		}
 	}
 
 	if core.Config.Trading.Backtesting.ExportCsv.Reports {
