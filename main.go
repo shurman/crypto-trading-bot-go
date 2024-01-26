@@ -16,7 +16,7 @@ import (
 //Future work
 //backtesting with bitfinex
 //multiple interval
-//next strategy (Open when EMA alignment trend exists) (ATR as Stop loss)
+//next strategy (Open when EMA alignment trend exists) (ATR as Stop loss) //https://themarketmemo.com/mytradingview/
 
 //backup
 //交易不可能三角 //勝率//盈虧比//時間 //https://www.fat-tail.com/v1/selector/article/59e61ccfe1fbca000e853c20.html

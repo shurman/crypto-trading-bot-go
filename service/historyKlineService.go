@@ -19,11 +19,19 @@ import (
 
 var (
 	futuresClient *futures.Client
-	filePath      string = "data/"
+	klineFilePath string = "data/"
 )
 
 func init() {
 	futuresClient = binance.NewFuturesClient(core.Config.Binance.Apikey, core.Config.Binance.Apisecret)
+
+	if _, err := os.Stat(klineFilePath); os.IsNotExist(err) {
+		err := os.MkdirAll(klineFilePath, os.ModePerm)
+
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
 func LoadHistoryKline() {
@@ -48,7 +56,7 @@ func LoadHistoryKline() {
 }
 
 func DownloadRawHistoryKline(symbol string, interval string, startTime int64, limit int) {
-	f, _ := os.OpenFile(filePath+symbol+"_"+interval+".txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, _ := os.OpenFile(klineFilePath+symbol+"_"+interval+".txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	defer f.Close()
 
 	for {
@@ -111,7 +119,7 @@ func DownloadRawHistoryKline(symbol string, interval string, startTime int64, li
 }
 
 func LoadRawHistoryKline(symbol string, interval string) {
-	data, err := os.ReadFile(filePath + symbol + "_" + interval + ".txt")
+	data, err := os.ReadFile(klineFilePath + symbol + "_" + interval + ".txt")
 
 	if err != nil {
 		panic(err)
