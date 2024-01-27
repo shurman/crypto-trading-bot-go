@@ -8,7 +8,11 @@ import (
 )
 
 func BacktestingMode() {
-	filename := fmt.Sprintf("%s_%s_%.2f_reports.csv", time.Now().Format("20060102150405"), core.Config.Trading.Interval, core.Config.Trading.ProfitLossRatio)
+	filename := fmt.Sprintf("%s%s_%s_%.2f_reports.csv",
+		core.ReportFilePath,
+		time.Now().Format("20060102150405"),
+		core.Config.Trading.Interval,
+		core.Config.Trading.ProfitLossRatio)
 
 	for _, symbol := range core.Config.Trading.Symbols {
 		if core.Config.Trading.Backtesting.Download.Enable {

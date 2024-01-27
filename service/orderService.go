@@ -14,21 +14,11 @@ var (
 	currentKline    = make(map[string]*core.Kline)
 
 	currentFund = make(map[string]float64)
-
-	chartFilePath string = "chart/"
 )
 
 func init() {
 	for _, symbol := range core.Config.Trading.Symbols {
 		currentFund[symbol] = core.Config.Trading.InitialFund
-	}
-
-	if _, err := os.Stat(chartFilePath); os.IsNotExist(err) {
-		err := os.MkdirAll(chartFilePath, os.ModePerm)
-
-		if err != nil {
-			panic(err)
-		}
 	}
 }
 
@@ -414,7 +404,8 @@ func PrintOrderResult(symbol string) string {
 }
 
 func ExportOrdersResult(symbol string) {
-	filename := fmt.Sprintf("%s_%s_%s_%.2f_orders.csv",
+	filename := fmt.Sprintf("%s%s_%s_%s_%.2f_orders.csv",
+		core.ReportFilePath,
 		time.Now().Format("20060102150405"),
 		symbol,
 		core.Config.Trading.Interval,
@@ -431,7 +422,7 @@ func ExportOrdersResult(symbol string) {
 
 func ExportPerformanceChart(symbol string) {
 	filename := fmt.Sprintf("%s%s_%s_%.2f.png",
-		chartFilePath,
+		core.ChartFilePath,
 		symbol,
 		core.Config.Trading.Interval,
 		core.Config.Trading.ProfitLossRatio)
