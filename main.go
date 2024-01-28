@@ -8,7 +8,7 @@ import (
 )
 
 //TODO
-//check chart
+//export overall chart
 //https://www.ptt.cc/bbs/Trading/M.1538318192.A.FBC.html
 //binance/WOOX create order
 //Sharpe ratio //http://www.ifuun.com/a2018082215739276/

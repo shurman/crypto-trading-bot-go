@@ -122,15 +122,13 @@ func CreateOrder(
 	}
 
 	if sendNotify {
-		SendSlack(fmt.Sprintf("%s %s %s %.4f@%.4f P:%.4f L:%.4f  (risk:%.3fu) id:%s",
+		SendSlack(fmt.Sprintf("%s %s %s@%.4f P:%.4f L:%.4f  %s",
 			strategyBO.GetSymbol(),
 			action,
 			dir.ToString(),
-			quantity,
 			entry,
 			stopProfit,
 			stopLoss,
-			(entry-stopLoss)*quantity*float64(dir),
 			strategyBO.ToStandardId(_id),
 		))
 	}
