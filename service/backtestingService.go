@@ -25,7 +25,7 @@ func BacktestingMode() {
 
 		LoadRawHistoryKline(symbol, core.Config.Trading.Interval)
 
-		summary := PrintOrderResult(symbol)
+		summary := PrintSymbolResult(symbol)
 		if core.Config.Trading.Backtesting.Export.Reports {
 			f, _ := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 			f.Write([]byte(summary))

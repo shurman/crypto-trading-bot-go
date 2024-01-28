@@ -8,15 +8,15 @@ import (
 )
 
 //TODO
-//export overall chart
-//https://www.ptt.cc/bbs/Trading/M.1538318192.A.FBC.html
+//Trailing stop loss
 //binance/WOOX create order
-//Sharpe ratio //http://www.ifuun.com/a2018082215739276/
+//https://www.ptt.cc/bbs/Trading/M.1538318192.A.FBC.html
 
 //Future work
 //backtesting with bitfinex
 //multiple interval
 //next strategy (Open when EMA alignment trend exists) (ATR as Stop loss) //https://themarketmemo.com/mytradingview/
+//Sharpe ratio //http://www.ifuun.com/a2018082215739276/
 
 //backup
 //交易不可能三角 //勝率//盈虧比//時間 //https://www.fat-tail.com/v1/selector/article/59e61ccfe1fbca000e853c20.html

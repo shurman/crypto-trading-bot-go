@@ -287,129 +287,43 @@ func getClosedOrderSlices(symbol string) (closedOrders []*core.OrderBO) {
 	return
 }
 
-func PrintOrderResult(symbol string) string {
-	countLong := 0
-	countShort := 0
-	winLongCount := 0
-	lossLongCount := 0
-	winShortCount := 0
-	lossShortCount := 0
-	profitLong := 0.0
-	profitShort := 0.0
-	lossLong := 0.0
-	lossShort := 0.0
-	instantWin := 0
-	instantLoss := 0
-
-	dropDown := 0.0
-	maxDropDown := 0.0
-	totalLongFee := 0.0
-	totalShortFee := 0.0
-
-	closedOrders := getClosedOrderSlices(symbol)
-
-	for _, v := range closedOrders {
-		if v.GetDirection() == core.ORDER_LONG {
-			countLong++
-			if v.GetFinalProfit() > 0 {
-				winLongCount++
-
-				if v.IsInstantFillAndExit() {
-					instantWin++
-				}
-
-				if dropDown < maxDropDown {
-					maxDropDown = dropDown
-				}
-				dropDown = 0
-				profitLong += v.GetFinalProfit() - v.GetFee()
-
-			} else if v.GetFinalProfit() < 0 {
-				lossLongCount++
-				dropDown += v.GetFinalProfit() - v.GetFee()
-
-				if v.IsInstantFillAndExit() {
-					instantLoss++
-				}
-				lossLong += v.GetFinalProfit() - v.GetFee()
-			}
-			totalLongFee += v.GetFee()
-
-		} else if v.GetDirection() == core.ORDER_SHORT {
-			countShort++
-			if v.GetFinalProfit() > 0 {
-				winShortCount++
-
-				if v.IsInstantFillAndExit() {
-					instantWin++
-				}
-
-				if dropDown < maxDropDown {
-					maxDropDown = dropDown
-				}
-				dropDown = 0
-				profitShort += v.GetFinalProfit() - v.GetFee()
-
-			} else if v.GetFinalProfit() < 0 {
-				lossShortCount++
-				dropDown += v.GetFinalProfit() - v.GetFee()
-
-				if v.IsInstantFillAndExit() {
-					instantLoss++
-				}
-				lossShort += v.GetFinalProfit() - v.GetFee()
-			}
-			totalShortFee += v.GetFee()
-		}
-	}
-
-	var profitFactor float64
-	var recoveryFactor float64
-	if lossLong+lossShort == 0 {
-		profitFactor = (profitLong + profitShort)
-	} else {
-		profitFactor = (profitLong + profitShort) / -(lossLong + lossShort)
-	}
-
-	if maxDropDown == 0 {
-		recoveryFactor = (currentFundMap[symbol] - core.Config.Trading.InitialFund) / 1
-	} else {
-		recoveryFactor = (currentFundMap[symbol] - core.Config.Trading.InitialFund) / -maxDropDown
-	}
+func PrintSymbolResult(symbol string) string {
+	bo := core.CalculateOrdersResult(getClosedOrderSlices(symbol))
+	profitFactor, recoveryFactor := core.GetPfRf(bo.ProfitLong+bo.ProfitShort, bo.LossLong+bo.LossShort, currentFundMap[symbol]-core.Config.Trading.InitialFund, bo.MaxDropDown)
 
 	Logger.Warn(fmt.Sprintf("%s Backtesting Result", symbol))
 	Logger.Warn("\tLong\t\tShort\t\tTotal")
 	Logger.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d\t%5d/%5d\t(Instant: %2d/%2d) (Still Entry: %d)",
-		winLongCount, winLongCount+lossLongCount,
-		winShortCount, winShortCount+lossShortCount,
-		winLongCount+winShortCount, winLongCount+lossLongCount+winShortCount+lossShortCount,
-		instantWin,
-		instantWin+instantLoss,
+		bo.WinLongCount, bo.WinLongCount+bo.LossLongCount,
+		bo.WinShortCount, bo.WinShortCount+bo.LossShortCount,
+		bo.WinLongCount+bo.WinShortCount, bo.WinLongCount+bo.LossLongCount+bo.WinShortCount+bo.LossShortCount,
+		bo.InstantWin,
+		bo.InstantWin+bo.InstantLoss,
 		len(ordersMap[symbol])))
-	winRate := float64(winLongCount+winShortCount) / float64(winLongCount+lossLongCount+winShortCount+lossShortCount)
+	winRate := float64(bo.WinLongCount+bo.WinShortCount) / float64(bo.WinLongCount+bo.LossLongCount+bo.WinShortCount+bo.LossShortCount)
 	Logger.Warn(fmt.Sprintf("Ratio\t=%8.3f%%\t=%8.3f%%\t=%8.3f%%\t(ev: %.3f) (P.F.: %.3f) (R.F.: %.3f)",
-		float64(winLongCount)/float64(winLongCount+lossLongCount)*100,
-		float64(winShortCount)/float64(winShortCount+lossShortCount)*100,
+		float64(bo.WinLongCount)/float64(bo.WinLongCount+bo.LossLongCount)*100,
+		float64(bo.WinShortCount)/float64(bo.WinShortCount+bo.LossShortCount)*100,
 		winRate*100,
 		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate),
 		profitFactor,
 		recoveryFactor))
-	Logger.Warn(fmt.Sprintf("Profit\t$%-8.3f\t$%-8.3f\t$%-8.3f", profitLong+lossLong, profitShort+lossShort, profitLong+profitShort+lossLong+lossShort))
-	Logger.Warn(fmt.Sprintf("Fee\t$%-8.3f\t$%-8.3f\t$%-8.3f", totalLongFee, totalShortFee, totalLongFee+totalShortFee))
+	Logger.Warn(fmt.Sprintf("Profit\t$%-8.3f\t$%-8.3f\t$%-8.3f", bo.ProfitLong+bo.LossLong, bo.ProfitShort+bo.LossShort, bo.ProfitLong+bo.ProfitShort+bo.LossLong+bo.LossShort))
+	Logger.Warn(fmt.Sprintf("Fee\t$%-8.3f\t$%-8.3f\t$%-8.3f", bo.TotalLongFee, bo.TotalShortFee, bo.TotalLongFee+bo.TotalShortFee))
 	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.3f (%3.3f%%)\t(MDD:%.2f)",
 		core.Config.Trading.InitialFund,
 		currentFundMap[symbol],
 		(currentFundMap[symbol]/core.Config.Trading.InitialFund-1)*100,
-		maxDropDown))
+		bo.MaxDropDown))
 	Logger.Warn("=============================================================")
 
 	return fmt.Sprintf("%s,%.3f%%,%5d,%.3f,%6.2f,%5.3f\n",
 		symbol,
 		winRate*100,
-		winLongCount+lossLongCount+winShortCount+lossShortCount,
+		bo.WinLongCount+bo.LossLongCount+bo.WinShortCount+bo.LossShortCount,
 		profitFactor,
-		currentFundMap[symbol]-core.Config.Trading.InitialFund+(totalLongFee+totalShortFee),
-		-(totalLongFee + totalShortFee))
+		currentFundMap[symbol]-core.Config.Trading.InitialFund+(bo.TotalLongFee+bo.TotalShortFee),
+		-(bo.TotalLongFee + bo.TotalShortFee))
 }
 
 func ExportSymbolResult(symbol string) {
@@ -471,120 +385,42 @@ func ExportOverallPerformanceChart() {
 	initalFund := core.Config.Trading.InitialFund * float64(len(core.Config.Trading.Symbols))
 	currentFund := initalFund
 
-	countLong := 0
-	countShort := 0
-	winLongCount := 0
-	lossLongCount := 0
-	winShortCount := 0
-	lossShortCount := 0
-	profitLong := 0.0
-	profitShort := 0.0
-	lossLong := 0.0
-	lossShort := 0.0
-	instantWin := 0
-	instantLoss := 0
-
-	dropDown := 0.0
-	maxDropDown := 0.0
-	totalLongFee := 0.0
-	totalShortFee := 0.0
+	bo := core.CalculateOrdersResult(closedOrders)
 
 	for _, v := range closedOrders {
-		if v.GetDirection() == core.ORDER_LONG {
-			countLong++
-			if v.GetFinalProfit() > 0 {
-				winLongCount++
-
-				if v.IsInstantFillAndExit() {
-					instantWin++
-				}
-
-				if dropDown < maxDropDown {
-					maxDropDown = dropDown
-				}
-				dropDown = 0
-				profitLong += v.GetFinalProfit() - v.GetFee()
-
-			} else if v.GetFinalProfit() < 0 {
-				lossLongCount++
-				dropDown += v.GetFinalProfit() - v.GetFee()
-
-				if v.IsInstantFillAndExit() {
-					instantLoss++
-				}
-				lossLong += v.GetFinalProfit() - v.GetFee()
-			}
-			totalLongFee += v.GetFee()
-
-		} else if v.GetDirection() == core.ORDER_SHORT {
-			countShort++
-			if v.GetFinalProfit() > 0 {
-				winShortCount++
-
-				if v.IsInstantFillAndExit() {
-					instantWin++
-				}
-
-				if dropDown < maxDropDown {
-					maxDropDown = dropDown
-				}
-				dropDown = 0
-				profitShort += v.GetFinalProfit() - v.GetFee()
-
-			} else if v.GetFinalProfit() < 0 {
-				lossShortCount++
-				dropDown += v.GetFinalProfit() - v.GetFee()
-
-				if v.IsInstantFillAndExit() {
-					instantLoss++
-				}
-				lossShort += v.GetFinalProfit() - v.GetFee()
-			}
-			totalShortFee += v.GetFee()
-		}
-
 		currentFund += v.GetFinalProfit() - v.GetFee()
-		xValues = append(xValues, v.GetCreateTime())
-		yValues = append(yValues, currentFund)
+
+		if core.Config.Trading.Backtesting.OverallChart {
+			xValues = append(xValues, v.GetCreateTime())
+			yValues = append(yValues, currentFund)
+		}
 	}
 
-	var profitFactor float64
-	var recoveryFactor float64
-	if lossLong+lossShort == 0 {
-		profitFactor = (profitLong + profitShort)
-	} else {
-		profitFactor = (profitLong + profitShort) / -(lossLong + lossShort)
-	}
-
-	if maxDropDown == 0 {
-		recoveryFactor = (currentFund - initalFund) / 1
-	} else {
-		recoveryFactor = (currentFund - initalFund) / -maxDropDown
-	}
+	profitFactor, recoveryFactor := core.GetPfRf(bo.ProfitLong+bo.ProfitShort, bo.LossLong+bo.LossShort, currentFund-core.Config.Trading.InitialFund, bo.MaxDropDown)
 
 	Logger.Warn("Overall Backtesting Result")
 	Logger.Warn("\tLong\t\tShort\t\tTotal")
 	Logger.Warn(fmt.Sprintf("Win\t%5d/%5d\t%5d/%5d\t%5d/%5d\t(Instant: %2d/%2d)",
-		winLongCount, winLongCount+lossLongCount,
-		winShortCount, winShortCount+lossShortCount,
-		winLongCount+winShortCount, winLongCount+lossLongCount+winShortCount+lossShortCount,
-		instantWin,
-		instantWin+instantLoss))
-	winRate := float64(winLongCount+winShortCount) / float64(winLongCount+lossLongCount+winShortCount+lossShortCount)
+		bo.WinLongCount, bo.WinLongCount+bo.LossLongCount,
+		bo.WinShortCount, bo.WinShortCount+bo.LossShortCount,
+		bo.WinLongCount+bo.WinShortCount, bo.WinLongCount+bo.LossLongCount+bo.WinShortCount+bo.LossShortCount,
+		bo.InstantWin,
+		bo.InstantWin+bo.InstantLoss))
+	winRate := float64(bo.WinLongCount+bo.WinShortCount) / float64(bo.WinLongCount+bo.LossLongCount+bo.WinShortCount+bo.LossShortCount)
 	Logger.Warn(fmt.Sprintf("Ratio\t=%8.3f%%\t=%8.3f%%\t=%8.3f%%\t(ev: %.3f) (P.F.: %.3f) (R.F.: %.3f)",
-		float64(winLongCount)/float64(winLongCount+lossLongCount)*100,
-		float64(winShortCount)/float64(winShortCount+lossShortCount)*100,
+		float64(bo.WinLongCount)/float64(bo.WinLongCount+bo.LossLongCount)*100,
+		float64(bo.WinShortCount)/float64(bo.WinShortCount+bo.LossShortCount)*100,
 		winRate*100,
 		core.Config.Trading.ProfitLossRatio*winRate-(1-winRate),
 		profitFactor,
 		recoveryFactor))
-	Logger.Warn(fmt.Sprintf("Profit\t$%-8.3f\t$%-8.3f\t$%-8.3f", profitLong+lossLong, profitShort+lossShort, profitLong+profitShort+lossLong+lossShort))
-	Logger.Warn(fmt.Sprintf("Fee\t$%-8.3f\t$%-8.3f\t$%-8.3f", totalLongFee, totalShortFee, totalLongFee+totalShortFee))
+	Logger.Warn(fmt.Sprintf("Profit\t$%-8.3f\t$%-8.3f\t$%-8.3f", bo.ProfitLong+bo.LossLong, bo.ProfitShort+bo.LossShort, bo.ProfitLong+bo.ProfitShort+bo.LossLong+bo.LossShort))
+	Logger.Warn(fmt.Sprintf("Fee\t$%-8.3f\t$%-8.3f\t$%-8.3f", bo.TotalLongFee, bo.TotalShortFee, bo.TotalLongFee+bo.TotalShortFee))
 	Logger.Warn(fmt.Sprintf("Fund\t$%6.2f -> $%6.3f (%3.3f%%)\t(MDD:%.2f)",
 		initalFund,
 		currentFund,
 		(currentFund/initalFund-1)*100,
-		maxDropDown))
+		bo.MaxDropDown))
 	Logger.Warn("=============================================================")
 
 	if core.Config.Trading.Backtesting.OverallChart {
