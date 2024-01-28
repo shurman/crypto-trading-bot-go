@@ -26,21 +26,17 @@ func BacktestingMode() {
 		LoadRawHistoryKline(symbol, core.Config.Trading.Interval)
 
 		summary := PrintOrderResult(symbol)
-		if core.Config.Trading.Backtesting.ExportCsv.Reports {
+		if core.Config.Trading.Backtesting.Export.Reports {
 			f, _ := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 			f.Write([]byte(summary))
 		}
 
-		if core.Config.Trading.Backtesting.ExportCsv.Orders {
-			ExportOrdersResult(symbol)
-		}
-
-		if core.Config.Trading.Backtesting.ExportImage {
-			ExportPerformanceChart(symbol)
-		}
+		ExportSymbolResult(symbol)
 	}
 
-	if core.Config.Trading.Backtesting.ExportCsv.Reports {
+	if core.Config.Trading.Backtesting.Export.Reports {
 		Logger.Info("Export Summary Report to " + filename)
 	}
+
+	ExportOverallPerformanceChart()
 }
