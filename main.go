@@ -8,17 +8,17 @@ import (
 )
 
 //TODO
-//Trailing stop loss
 //binance/WOOX create order
-//https://www.ptt.cc/bbs/Trading/M.1538318192.A.FBC.html
+//https://themarketmemo.com/mytradingview/
 
 //Future work
 //backtesting with bitfinex
 //multiple interval
-//next strategy (Open when EMA alignment trend exists) (ATR as Stop loss) //https://themarketmemo.com/mytradingview/
+//next strategy (Open when EMA alignment trend exists) (ATR as Stop loss)
 //Sharpe ratio //http://www.ifuun.com/a2018082215739276/
 
 //backup
+//https://www.ptt.cc/bbs/Trading/M.1538318192.A.FBC.html
 //交易不可能三角 //勝率//盈虧比//時間 //https://www.fat-tail.com/v1/selector/article/59e61ccfe1fbca000e853c20.html
 //https://github.com/markcheno/go-talib/blob/master/talib.go
 

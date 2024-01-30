@@ -73,6 +73,9 @@ func (bo *OrderBO) GetExitTime() time.Time {
 func (bo *OrderBO) GetStopLossPrice() float64 {
 	return bo.stopLoss
 }
+func (bo *OrderBO) SetStopLossPrice(slPrice float64) {
+	bo.stopLoss = slPrice
+}
 
 func (bo *OrderBO) GetFinalProfit() float64 {
 	return bo.finalProfit

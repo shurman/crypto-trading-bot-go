@@ -360,7 +360,7 @@ func ExportSymbolResult(symbol string) {
 		Logger.Info("Export Order List to " + orderFilename)
 	}
 	if core.Config.Trading.Backtesting.Export.Chart {
-		chartFilename := fmt.Sprintf("%s%s_%s_%.2f.png",
+		chartFilename := fmt.Sprintf("%s%s_%s_%.2f",
 			core.ChartFilePath,
 			symbol,
 			core.Config.Trading.Interval,
@@ -424,7 +424,7 @@ func ExportOverallPerformanceChart() {
 	Logger.Warn("=============================================================")
 
 	if core.Config.Trading.Backtesting.OverallChart {
-		chartFilename := fmt.Sprintf("%soverall_%s_%.2f.png",
+		chartFilename := fmt.Sprintf("%soverall_%s_%.2f",
 			core.ChartFilePath,
 			core.Config.Trading.Interval,
 			core.Config.Trading.ProfitLossRatio)
@@ -432,5 +432,6 @@ func ExportOverallPerformanceChart() {
 			core.Config.Trading.Interval,
 			core.Config.Trading.ProfitLossRatio)
 		ExportChart(xValues, yValues, chartTitle, chartFilename)
+		Logger.Info("Export Performance Chart to " + chartFilename)
 	}
 }
