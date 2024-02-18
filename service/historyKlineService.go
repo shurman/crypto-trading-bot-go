@@ -18,16 +18,16 @@ import (
 )
 
 var (
-	futuresClient *futures.Client
+	FuturesClient *futures.Client
 )
 
 func init() {
-	futuresClient = binance.NewFuturesClient(core.Config.Binance.Apikey, core.Config.Binance.Apisecret)
+	FuturesClient = binance.NewFuturesClient(core.Config.Binance.Apikey, core.Config.Binance.Apisecret)
 }
 
 func LoadHistoryKline() {
 	for _, symbol := range core.Config.Trading.Symbols {
-		historyKlines, _ := futuresClient.NewKlinesService().
+		historyKlines, _ := FuturesClient.NewKlinesService().
 			Symbol(symbol).
 			Limit(max(min(core.Config.Trading.Indicator.StartFromKlines+1, 1500), 1)).
 			Interval(core.Config.Trading.Interval).

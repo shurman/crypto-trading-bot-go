@@ -8,13 +8,10 @@ import (
 )
 
 //TODO
-//binance/WOOX create order
-//https://themarketmemo.com/mytradingview/
+//next indicator//based on OI,LSR
 
 //Future work
-//backtesting with bitfinex
-//multiple interval
-//next strategy (Open when EMA alignment trend exists) (ATR as Stop loss)
+//binance/WOOX create order
 //Sharpe ratio //http://www.ifuun.com/a2018082215739276/
 
 //backup
@@ -27,7 +24,7 @@ func main() {
 
 	if core.Config.Trading.Mode == "indicator" {
 		service.IndicatorMode()
-	} else {
+	} else if core.Config.Trading.Mode == "backtesting" {
 		service.BacktestingMode()
 	}
 }
